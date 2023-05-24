@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>582</width>
+    <height>420</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout_3">
+    <item row="0" column="0">
+     <widget class="QGroupBox" name="groupBox_Parameters">
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="title">
+       <string>Parameters</string>
+      </property>
+      <widget class="QWidget" name="layoutWidget">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>261</width>
+         <height>261</height>
+        </rect>
+       </property>
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="lineEdit_StartTime"/>
+        </item>
+        <item row="10" column="0">
+         <widget class="QLabel" name="label_Iterations">
+          <property name="text">
+           <string>Iterations</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="1">
+         <widget class="QLineEdit" name="lineEdit_SamplingFreq"/>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="lineEdit_EMGFile"/>
+        </item>
+        <item row="4" column="1">
+         <widget class="QLineEdit" name="lineEdit_SaveAs"/>
+        </item>
+        <item row="11" column="1">
+         <widget class="QLineEdit" name="lineEdit_MinDistance"/>
+        </item>
+        <item row="8" column="1">
+         <widget class="QLineEdit" name="lineEdit_DiscardChannels"/>
+        </item>
+        <item row="11" column="0">
+         <widget class="QLabel" name="label_MinDistance">
+          <property name="text">
+           <string>Min. distance between peaks</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_StartTime">
+          <property name="text">
+           <string>     Start (s)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_EMGFile">
+          <property name="text">
+           <string>EMG file</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_SaveAs">
+          <property name="text">
+           <string>Save as</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="0">
+         <widget class="QLabel" name="label_SamplingFreq">
+          <property name="text">
+           <string>Sampling freq.</string>
+          </property>
+         </widget>
+        </item>
+        <item row="9" column="0">
+         <widget class="QLabel" name="label_ExtFactor">
+          <property name="text">
+           <string>Ext. factor</string>
+          </property>
+         </widget>
+        </item>
+        <item row="10" column="1">
+         <widget class="QLineEdit" name="lineEdit_Iterations"/>
+        </item>
+        <item row="8" column="0">
+         <widget class="QLabel" name="label_DiscardChannels">
+          <property name="text">
+           <string>Discard channels</string>
+          </property>
+         </widget>
+        </item>
+        <item row="9" column="1">
+         <widget class="QLineEdit" name="lineEdit_ExtFactor"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QPushButton" name="pushButton_Browse">
+          <property name="text">
+           <string>Browse</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_EndTime">
+          <property name="text">
+           <string>     End (s)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="lineEdit_EndTime"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="layoutWidget">
+       <property name="geometry">
+        <rect>
+         <x>300</x>
+         <y>20</y>
+         <width>251</width>
+         <height>231</height>
+        </rect>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="5" column="1">
+         <widget class="QLineEdit" name="lineEdit_SILThreshold">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="1">
+         <widget class="QLineEdit" name="lineEdit_MaxSepIter"/>
+        </item>
+        <item row="4" column="0">
+         <widget class="QCheckBox" name="checkBox_SIL">
+          <property name="text">
+           <string>SIL</string>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="1">
+         <widget class="QLineEdit" name="lineEdit_MaxRefIter"/>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="label_SILThreshold">
+          <property name="text">
+           <string>     threshold</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_lowcutFreq">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>     lowcut freq.</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QCheckBox" name="checkBox_BandpassFilter">
+          <property name="text">
+           <string>Bandpass filter</string>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="lineEdit_order">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="lineEdit_lowcutFreq">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_order">
+          <property name="text">
+           <string>     order</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_highcutFreq">
+          <property name="text">
+           <string>     highcut freq.</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="0">
+         <widget class="QLabel" name="label_MaxSepIter">
+          <property name="text">
+           <string>Max. separation iter.</string>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="0">
+         <widget class="QLabel" name="label_MaxRefIter">
+          <property name="text">
+           <string>Max. refinement iter.</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="lineEdit_highcutFreq">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="0">
+         <widget class="QLabel" name="label_xTolerance">
+          <property name="text">
+           <string>     x_tolerance</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="1">
+         <widget class="QLineEdit" name="lineEdit_xTolerance"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QPushButton" name="pushButton_RealtimeDecomposition">
+       <property name="geometry">
+        <rect>
+         <x>160</x>
+         <y>320</y>
+         <width>226</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Realtime Decomposition</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_Decompose">
+       <property name="geometry">
+        <rect>
+         <x>160</x>
+         <y>290</y>
+         <width>226</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Decompose</string>
+       </property>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>582</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionExit"/>
+   </widget>
+   <addaction name="menuFile"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionClose">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Close</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
