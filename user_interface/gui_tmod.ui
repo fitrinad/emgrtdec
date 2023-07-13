@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>582</width>
-    <height>420</height>
+    <height>511</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -31,47 +31,42 @@
         <rect>
          <x>10</x>
          <y>20</y>
-         <width>261</width>
-         <height>261</height>
+         <width>251</width>
+         <height>351</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout">
-        <item row="2" column="1">
-         <widget class="QLineEdit" name="lineEdit_StartTime"/>
-        </item>
-        <item row="10" column="0">
-         <widget class="QLabel" name="label_Iterations">
-          <property name="text">
-           <string>Iterations</string>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="1">
-         <widget class="QLineEdit" name="lineEdit_SamplingFreq"/>
-        </item>
-        <item row="0" column="1">
-         <widget class="QLineEdit" name="lineEdit_EMGFile"/>
-        </item>
-        <item row="4" column="1">
-         <widget class="QLineEdit" name="lineEdit_SaveAs"/>
-        </item>
-        <item row="11" column="1">
-         <widget class="QLineEdit" name="lineEdit_MinDistance"/>
-        </item>
-        <item row="8" column="1">
-         <widget class="QLineEdit" name="lineEdit_DiscardChannels"/>
-        </item>
-        <item row="11" column="0">
-         <widget class="QLabel" name="label_MinDistance">
-          <property name="text">
-           <string>Min. distance between peaks</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
+        <item row="4" column="0">
          <widget class="QLabel" name="label_StartTime">
           <property name="text">
            <string>     Start (s)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="label_EndTime">
+          <property name="text">
+           <string>     End (s)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="0">
+         <widget class="QLabel" name="label_EndTime_2">
+          <property name="text">
+           <string>     Selected array:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QLineEdit" name="lineEdit_EndTime"/>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="lineEdit_SamplingFreq"/>
+        </item>
+        <item row="6" column="1">
+         <widget class="QRadioButton" name="radioButton_FirstArray">
+          <property name="text">
+           <string>1st</string>
           </property>
          </widget>
         </item>
@@ -82,39 +77,19 @@
           </property>
          </widget>
         </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="label_SaveAs">
+        <item row="8" column="1">
+         <widget class="QRadioButton" name="radioButton_AllArrays">
           <property name="text">
-           <string>Save as</string>
+           <string>All</string>
           </property>
          </widget>
         </item>
-        <item row="7" column="0">
+        <item row="3" column="0">
          <widget class="QLabel" name="label_SamplingFreq">
           <property name="text">
-           <string>Sampling freq.</string>
+           <string>     Sampling freq.</string>
           </property>
          </widget>
-        </item>
-        <item row="9" column="0">
-         <widget class="QLabel" name="label_ExtFactor">
-          <property name="text">
-           <string>Ext. factor</string>
-          </property>
-         </widget>
-        </item>
-        <item row="10" column="1">
-         <widget class="QLineEdit" name="lineEdit_Iterations"/>
-        </item>
-        <item row="8" column="0">
-         <widget class="QLabel" name="label_DiscardChannels">
-          <property name="text">
-           <string>Discard channels</string>
-          </property>
-         </widget>
-        </item>
-        <item row="9" column="1">
-         <widget class="QLineEdit" name="lineEdit_ExtFactor"/>
         </item>
         <item row="1" column="1">
          <widget class="QPushButton" name="pushButton_Browse">
@@ -123,56 +98,76 @@
           </property>
          </widget>
         </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_EndTime">
+        <item row="4" column="1">
+         <widget class="QLineEdit" name="lineEdit_StartTime"/>
+        </item>
+        <item row="7" column="1">
+         <widget class="QRadioButton" name="radioButton_SecondArray">
           <property name="text">
-           <string>     End (s)</string>
+           <string>2nd</string>
           </property>
          </widget>
         </item>
-        <item row="3" column="1">
-         <widget class="QLineEdit" name="lineEdit_EndTime"/>
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="lineEdit_EMGFile"/>
+        </item>
+        <item row="10" column="0">
+         <widget class="QLabel" name="label_SelectingBadChannels">
+          <property name="text">
+           <string>Selecting bad channels:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="11" column="0">
+         <widget class="QLabel" name="label_NoiseStart">
+          <property name="text">
+           <string>     Noise start (s)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="12" column="0">
+         <widget class="QLabel" name="label_NoiseEnd">
+          <property name="text">
+           <string>     Noise end (s)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="13" column="0">
+         <widget class="QLabel" name="label_SNRThreshold">
+          <property name="text">
+           <string>     SNR threshold</string>
+          </property>
+         </widget>
+        </item>
+        <item row="14" column="1">
+         <widget class="QPushButton" name="pushButton_ShowBadChannels">
+          <property name="text">
+           <string>Show bad channels</string>
+          </property>
+         </widget>
+        </item>
+        <item row="11" column="1">
+         <widget class="QLineEdit" name="lineEdit_NoiseStart"/>
+        </item>
+        <item row="12" column="1">
+         <widget class="QLineEdit" name="lineEdit_NoiseEnd"/>
+        </item>
+        <item row="13" column="1">
+         <widget class="QLineEdit" name="lineEdit_SNRThreshold"/>
         </item>
        </layout>
       </widget>
       <widget class="QWidget" name="layoutWidget">
        <property name="geometry">
         <rect>
-         <x>300</x>
+         <x>280</x>
          <y>20</y>
-         <width>251</width>
-         <height>231</height>
+         <width>271</width>
+         <height>354</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
-        <item row="5" column="1">
-         <widget class="QLineEdit" name="lineEdit_SILThreshold">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="1">
-         <widget class="QLineEdit" name="lineEdit_MaxSepIter"/>
-        </item>
-        <item row="4" column="0">
-         <widget class="QCheckBox" name="checkBox_SIL">
-          <property name="text">
-           <string>SIL</string>
-          </property>
-         </widget>
-        </item>
-        <item row="8" column="1">
-         <widget class="QLineEdit" name="lineEdit_MaxRefIter"/>
-        </item>
-        <item row="5" column="0">
-         <widget class="QLabel" name="label_SILThreshold">
-          <property name="text">
-           <string>     threshold</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
+        <item row="6" column="0">
          <widget class="QLabel" name="label_lowcutFreq">
           <property name="toolTip">
            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -182,7 +177,105 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="0">
+        <item row="9" column="0">
+         <widget class="QCheckBox" name="checkBox_SIL">
+          <property name="text">
+           <string>SIL</string>
+          </property>
+         </widget>
+        </item>
+        <item row="13" column="0">
+         <widget class="QLabel" name="label_MaxRefIter">
+          <property name="text">
+           <string>Max. refinement iter.</string>
+          </property>
+         </widget>
+        </item>
+        <item row="10" column="1">
+         <widget class="QLineEdit" name="lineEdit_SILThreshold">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="1">
+         <widget class="QLineEdit" name="lineEdit_order">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QLineEdit" name="lineEdit_MinDistance"/>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_MinDistance">
+          <property name="text">
+           <string>Min. distance between peaks</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="1">
+         <widget class="QLineEdit" name="lineEdit_highcutFreq">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="lineEdit_ExtFactor"/>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="lineEdit_Iterations"/>
+        </item>
+        <item row="11" column="1">
+         <widget class="QLineEdit" name="lineEdit_MaxSepIter"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_DiscardChannels">
+          <property name="text">
+           <string>Discard channels</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_Iterations">
+          <property name="text">
+           <string>Iterations</string>
+          </property>
+         </widget>
+        </item>
+        <item row="10" column="0">
+         <widget class="QLabel" name="label_SILThreshold">
+          <property name="text">
+           <string>     threshold</string>
+          </property>
+         </widget>
+        </item>
+        <item row="12" column="1">
+         <widget class="QLineEdit" name="lineEdit_xTolerance"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="lineEdit_DiscardChannels"/>
+        </item>
+        <item row="8" column="0">
+         <widget class="QLabel" name="label_order">
+          <property name="text">
+           <string>     order</string>
+          </property>
+         </widget>
+        </item>
+        <item row="13" column="1">
+         <widget class="QLineEdit" name="lineEdit_MaxRefIter"/>
+        </item>
+        <item row="12" column="0">
+         <widget class="QLabel" name="label_xTolerance">
+          <property name="text">
+           <string>     x_tolerance</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
          <widget class="QCheckBox" name="checkBox_BandpassFilter">
           <property name="text">
            <string>Bandpass filter</string>
@@ -192,64 +285,43 @@
           </property>
          </widget>
         </item>
-        <item row="3" column="1">
-         <widget class="QLineEdit" name="lineEdit_order">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QLineEdit" name="lineEdit_lowcutFreq">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_order">
-          <property name="text">
-           <string>     order</string>
-          </property>
-         </widget>
-        </item>
         <item row="2" column="0">
-         <widget class="QLabel" name="label_highcutFreq">
+         <widget class="QLabel" name="label_ExtFactor">
           <property name="text">
-           <string>     highcut freq.</string>
+           <string>Extension factor</string>
           </property>
          </widget>
         </item>
-        <item row="6" column="0">
+        <item row="11" column="0">
          <widget class="QLabel" name="label_MaxSepIter">
           <property name="text">
            <string>Max. separation iter.</string>
           </property>
          </widget>
         </item>
-        <item row="8" column="0">
-         <widget class="QLabel" name="label_MaxRefIter">
+        <item row="7" column="0">
+         <widget class="QLabel" name="label_highcutFreq">
           <property name="text">
-           <string>Max. refinement iter.</string>
+           <string>     highcut freq.</string>
           </property>
          </widget>
         </item>
-        <item row="2" column="1">
-         <widget class="QLineEdit" name="lineEdit_highcutFreq">
+        <item row="6" column="1">
+         <widget class="QLineEdit" name="lineEdit_lowcutFreq">
           <property name="enabled">
            <bool>false</bool>
           </property>
          </widget>
         </item>
-        <item row="7" column="0">
-         <widget class="QLabel" name="label_xTolerance">
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_SaveAs">
           <property name="text">
-           <string>     x_tolerance</string>
+           <string>Save as</string>
           </property>
          </widget>
         </item>
-        <item row="7" column="1">
-         <widget class="QLineEdit" name="lineEdit_xTolerance"/>
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="lineEdit_SaveAs"/>
         </item>
        </layout>
       </widget>
@@ -257,7 +329,7 @@
        <property name="geometry">
         <rect>
          <x>160</x>
-         <y>320</y>
+         <y>420</y>
          <width>226</width>
          <height>23</height>
         </rect>
@@ -270,7 +342,7 @@
        <property name="geometry">
         <rect>
          <x>160</x>
-         <y>290</y>
+         <y>390</y>
          <width>226</width>
          <height>23</height>
         </rect>

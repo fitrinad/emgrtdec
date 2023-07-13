@@ -1,0 +1,4 @@
+setuptools
+coveralls
+pylint
+tox
