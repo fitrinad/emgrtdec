@@ -153,7 +153,7 @@ def visualize_pt(ind_pt, data, ref_signal=None, fs=2048,
     font_medium = 20
     font_small = 16
     
-    if ind_pt.shape[0] != 1:
+    if ind_pt.shape[0] == 1 and ind_pt.ndim > 1:
         ind_pt = ind_pt.squeeze()
     n_mu = ind_pt.shape[0]
     if ((data[0][0].size == 0 or
