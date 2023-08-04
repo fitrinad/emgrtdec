@@ -128,7 +128,11 @@ def plot_env_data(data, fs=2048, order=4, l_bpf=40, h_bpf=900, lpf_cut=.2):
     plt.show()
     
 
-def visualize_pt(ind_pt, data, ref_signal=None, fs=2048, title="decomposition"):
+def visualize_pt(ind_pt, data, ref_signal=None, fs=2048, 
+                 use_filt=True, filt_size=2.0, title="decomposition",
+                 export_files=False, 
+                 file_name_pdf="decomposition.pdf", 
+                 file_name_png="decomposition.png"):
     """
     Plots reference signal of data and pulse trains of motor units from decomp.
     If ref_signal = None, plots the envelope of data instead of a reference signal.
@@ -182,15 +186,28 @@ def visualize_pt(ind_pt, data, ref_signal=None, fs=2048, title="decomposition"):
         envelope_data = env_data(data)
         ax[0].plot(time, envelope_data)
     else:
-        # Plotting ref_signal
-        ref_signal = ref_signal.squeeze()
+        if use_filt:
+            # Hanning window
+            windowSize = fs * filt_size
+            window = np.hanning(windowSize)
+            window = window / window.sum()
+            ref_signal = np.convolve(window, ref_signal.squeeze(), mode='same')
+        else:
+            # Plotting ref_signal
+            ref_signal = ref_signal.squeeze()
         ax[0].plot(time, ref_signal)
     ax[0].set_title(title, fontsize=font_large)
 
     for i in range(1, n_rows):
         ax[i].plot(time,pt[i-1])
         ax[i].set_ylabel(f"MU {i-1}", fontsize=font_medium)
+
+    if export_files == True:
+        plt.savefig(file_name_pdf)
+        plt.savefig(file_name_png)
+        
     plt.show()
+
     
     
 def visualize_pt_tmod(ind_pt, data, ref_signal=None, fs=2048, title="decomposition"):

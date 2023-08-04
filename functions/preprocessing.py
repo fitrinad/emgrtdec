@@ -1,10 +1,207 @@
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
+import warnings
 import copy
+import os
 from scipy import interpolate
+from scipy.io import loadmat
 from scipy.signal import butter, lfilter, iirnotch
 from emgdecompy.preprocessing import flatten_signal
 
+
+def import_emg_data(empty_dict={}, name="P00", n_training=1, n_objects=3, fs=2000,
+                    electrode_placements=["ext", "int"],
+                    data_types=["10_train", "30_train", "10_mov", "30_mov"],
+                    gestures=["rest_calibration", "close", "pinch", "tripod"]):
+    """
+    # Hanning window
+    windowSize = fs * filt_size
+    window = np.hanning(windowSize)
+    window = window / window.sum()
+    """
+    for electrode_placement in electrode_placements:
+        for data_type in data_types:
+            folder_path = "../data/" + name + "/" + name + "_" + electrode_placement + "_" + data_type
+            key_name = electrode_placement + "_" + data_type
+            empty_dict[key_name] = {}
+            for gesture in gestures:
+                # Rest calibration from Training data 10% MVC
+                if gesture == "rest_calibration":
+                    if data_type == "10_train":
+                        # Importing rest calibration data
+                        file_name = folder_path + "/" + gesture + ".csv"
+                        file_name_force = folder_path + "/" + gesture + "_force.csv"
+                        emg_signal = np.array( pd.read_csv(file_name).T )
+                        empty_dict[key_name][gesture] = emg_signal
+                        force_signal = np.array( pd.read_csv(file_name_force).T )
+                        force_signal = interpolate_1d(force_signal, emg_signal[0]).flatten()
+                        # force_signal = np.convolve(window, force_signal, mode='same')
+                        empty_dict[key_name][gesture+"_force"] = force_signal
+                else:
+                    if (data_type == "10_train") or (data_type == "30_train"):
+                        # Importing training data
+                        for i in range(1, n_training+1):
+                            training_gesture = gesture + str(i)
+                            file_name = folder_path + "/" + training_gesture + ".csv"
+                            file_name_force = folder_path + "/" + training_gesture + "_force.csv"
+                            emg_signal = np.array( pd.read_csv(file_name).T )
+                            empty_dict[key_name][training_gesture] = emg_signal
+                            force_signal = np.array( pd.read_csv(file_name_force).T )
+                            force_signal = interpolate_1d(force_signal, emg_signal[0]).flatten()
+                            # force_signal = np.convolve(window, force_signal, mode='same')
+                            empty_dict[key_name][training_gesture+"_force"] = force_signal
+                        if data_type == "10_train":
+                            # Importing mvc data
+                            mvc_gesture = "mvc_" + gesture
+                            file_name = folder_path + "/" + mvc_gesture + ".csv"
+                            file_name_force = folder_path + "/" + mvc_gesture + "_force.csv"
+                            emg_signal = np.array( pd.read_csv(file_name).T )
+                            empty_dict[key_name][mvc_gesture] = emg_signal
+                            force_signal = np.array( pd.read_csv(file_name_force).T )
+                            force_signal = interpolate_1d(force_signal, emg_signal[0]).flatten()
+                            # force_signal = np.convolve(window, force_signal, mode='same')
+                            empty_dict[key_name][mvc_gesture+"_force"] = force_signal
+                    elif (data_type == "10_mov") or (data_type == "30_mov"):
+                        # Importing movement data
+                        for i in range(1, n_objects+1):
+                            movement_gesture = gesture + str(i)
+                            file_name = folder_path + "/" + movement_gesture + ".csv"
+                            file_name_force = folder_path + "/" + movement_gesture + "_force.csv"
+                            emg_signal = np.array( pd.read_csv(file_name).T )
+                            empty_dict[key_name][movement_gesture] = emg_signal
+                            force_signal = np.array( pd.read_csv(file_name_force).T )
+                            force_signal = interpolate_1d(force_signal, emg_signal[0]).flatten()
+                            # force_signal = np.convolve(window, force_signal, mode='same')
+                            empty_dict[key_name][movement_gesture+"_force"] = force_signal
+    empty_dict["fs"] = fs
+    
+    return empty_dict
+
+def import_emg_data_otb(empty_dict={}, name="P01", 
+                        n_training=1, n_objects=4, fs=2000, cont_length=30.0,
+                        electrode_placements=["ext", "int"],
+                        mvc_levels=["10", "30"],
+                        gestures=["close", "pinch", "tripod"]):
+    for electrode_placement in electrode_placements:
+        if electrode_placement == "ext":
+            muscle_names = ["flexor", "extensor"]
+        elif electrode_placement == "int":
+            muscle_names = ["fdi", "second_di"]
+        for mvc_level in mvc_levels:
+            key_name_train = electrode_placement + "_" + mvc_level + "_train"
+            key_name_mov = electrode_placement + "_" + mvc_level + "_mov"
+            empty_dict[key_name_train] = {}
+            empty_dict[key_name_mov] = {}
+            for gesture in gestures:
+                folder_name = name + "_" + electrode_placement + "_" + mvc_level + "_" + gesture
+                folder_path = "../data/" + name + "/" + folder_name
+                # Importing force data
+                file_name_force = folder_path + "/" + folder_name + "_force.csv"
+                force_data = np.array( pd.read_csv(file_name_force, delimiter=";").T)
+                force_data = force_data[1:, :].flatten()
+
+                # Importing voltage measurement data
+                file_name_volt = folder_path + "/" + folder_name + "_volt.csv"
+                volt_data = np.array( pd.read_csv(file_name_volt, delimiter=";").T)
+                volt_data = volt_data[1:, :].flatten()
+                
+                # Importing EMG data
+                file_name_emg_0 = folder_path + "/" + folder_name + "_" + muscle_names[0] + ".csv"
+                emg_data_0 = np.array( pd.read_csv(file_name_emg_0, delimiter=";").T )
+                emg_data_0 = emg_data_0[1:,:]
+                nx_0 = emg_data_0.shape[1]
+                file_name_emg_1 = folder_path + "/" + folder_name + "_" + muscle_names[1] + ".csv"
+                emg_data_1 = np.array( pd.read_csv(file_name_emg_1, delimiter=";").T )
+                emg_data_1 = emg_data_1[1:,:]
+                nx_1 = emg_data_1.shape[1]
+                if nx_0 > nx_1:
+                    emg_data_0 = emg_data_0[:, :nx_1]
+                elif nx_1 > nx_0:
+                    emg_data_1 = emg_data_1[:, :nx_0]
+                emg_data = np.vstack((emg_data_0, emg_data_1))
+
+                # Separating training data and movement data
+                ## Training data
+                for i in range(1, n_training+1):
+                    # Cropping training data from recorded EMG
+                    train_signal = crop_data(data=emg_data, 
+                                                start = (i-1)*2*cont_length,
+                                                end = i*2*cont_length,
+                                                fs = fs)
+                    train_gesture = gesture + str(i)
+                    empty_dict[key_name_train][train_gesture] = train_signal
+                    # Cropping training data from force signal
+                    train_force = crop_data(data=force_data, 
+                                                start = (i-1)*2*cont_length,
+                                                end = i*2*cont_length,
+                                                fs = fs)
+                    empty_dict[key_name_train][train_gesture+"_force"] = train_force
+                    # Cropping training data from volt signal 
+                    train_volt = crop_data(data=volt_data, 
+                                            start = (i-1)*2*cont_length,
+                                            end = i*2*cont_length,
+                                            fs = fs)
+                    empty_dict[key_name_train][train_gesture+"_volt"] = train_volt
+
+                ## Movement data while holding objects
+                for i in range(1, n_objects+1):
+                    # Cropping movement data from recorded EMG
+                    mov_signal = crop_data(data=emg_data,
+                                            start = (n_training * 2*cont_length) + ((i-1)*cont_length),
+                                            end = (n_training * 2*cont_length) + (i*cont_length),
+                                            fs = fs)
+                    mov_gesture = gesture + str(i)
+                    empty_dict[key_name_mov][mov_gesture] = mov_signal
+                    # Cropping movement data from force signal
+                    mov_force = crop_data(data=force_data,
+                                            start = (n_training * 2*cont_length) + ((i-1)*cont_length),
+                                            end = (n_training * 2*cont_length) + (i*cont_length),
+                                            fs = fs)
+                    empty_dict[key_name_mov][mov_gesture+"_force"] = mov_force
+                    # Cropping training data from volt signal 
+                    mov_volt = crop_data(data=volt_data,
+                                            start = (n_training * 2*cont_length) + ((i-1)*cont_length),
+                                            end = (n_training * 2*cont_length) + (i*cont_length),
+                                            fs = fs)
+                    empty_dict[key_name_mov][mov_gesture+"_force"] = mov_volt
+    empty_dict["fs"] = fs
+    
+    return empty_dict
+
+
+def fftPlot(sig, dt=None, plot=True):
+    if dt is None:
+        dt = 1
+        t = np.arange(0, sig.shape[-1])
+        xLabel = 'samples'
+    else:
+        t = np.arange(0, sig.shape[-1]) * dt
+        xLabel = 'freq [Hz]'
+
+    if sig.shape[0] % 2 != 0:
+        warnings.warn("signal preferred to be even in size, autoFixing it...")
+        t = t[0:-1]
+        sig = sig[0:-1]
+
+    sigFFT = np.fft.fft(sig) / t.shape[0]  # Divided by size t for coherent magnitude
+
+    freq = np.fft.fftfreq(t.shape[0], d=dt)
+
+    # Plot analytic signal - right half of frequency axis needed only...
+    firstNegInd = np.argmax(freq < 0)
+    freqAxisPos = freq[0:firstNegInd]
+    sigFFTPos = 2 * sigFFT[0:firstNegInd]  # *2 because of magnitude of analytic signal
+
+    if plot:
+        plt.figure()
+        plt.plot(freqAxisPos, np.abs(sigFFTPos))
+        plt.xlabel(xLabel)
+        plt.ylabel('mag')
+        plt.title('Analytic FFT plot')
+        plt.show()
+
+    return sigFFTPos, freqAxisPos
 
 
 def interpolate_1d(data, data_ref):
@@ -138,7 +335,7 @@ def bad_channels(data, signal="signal", thd_snr=2.0, noise = None, noise_start=0
     # Checking for channels with only zeros
     zero_ch = search_zero_ch(data)
 
-    bad_ch = np.append(bad_ch, zero_ch)
+    bad_ch = np.unique(np.append(bad_ch, zero_ch))
     print(f"Bad channels in {signal}: {bad_ch}")
     return bad_ch
 
@@ -349,9 +546,7 @@ def modify_signal(data, remove_ind):
         data_mod    : numpy.ndarray
             Array containing modified EMG data
     """
-    
-    data_mod = copy.deepcopy(data)
-    
+
     # Acquiring indices to remove from data
     rm_ind_flt = np.ndarray.flatten(remove_ind)
     indices_to_remove = np.asarray([], dtype="int64")
@@ -360,11 +555,26 @@ def modify_signal(data, remove_ind):
                                         [ np.arange(rm_ind_flt[2*i], rm_ind_flt[2*i + 1]) ] )
     
     # Removing indices from data
-    for i in range(data.shape[0]):
-        for j in range(data.shape[1]):
-            if len(data[i][j]) != 0:
-                tmp = np.delete(data[i][j][0], indices_to_remove)
-                data_mod[i][j] = np.asarray([tmp]) 
+    if data.ndim == 1:
+        data_mod = np.zeros(len(data)-len(indices_to_remove), dtype='float')
+        if len(data) != 0:
+            tmp = np.delete(data, indices_to_remove)
+            data_mod = np.asarray([tmp])
+    elif (data.ndim == 2 and (data[0][0].size != 0 and data[12][0].size != 0)):
+        data_mod = np.zeros((data.shape[0], data.shape[1]-len(indices_to_remove)), dtype='float')
+        for i in range(data.shape[0]):
+            if len(data[i]) != 0:
+                tmp = np.delete(data[i], indices_to_remove)
+                data_mod[i] = np.asarray([tmp]) 
+    elif (data[0][0].size == 0 or
+          data[12][0].size == 0 and data.ndim == 2) or data.ndim == 3:
+        data_mod = copy.deepcopy(data)
+        for i in range(data.shape[0]):
+            for j in range(data.shape[1]):
+                if len(data[i][j]) != 0:
+                    tmp = np.delete(data[i][j][0], indices_to_remove)
+                    data_mod[i][j] = np.asarray([tmp]) 
+
     return data_mod
 
 
@@ -387,19 +597,15 @@ def crop_data(data, start=0.0, end=40.0, fs=2048):
         data_crop   : numpy.ndarray
             Array containing EMG data in the specified window
     """
-    # Flattening data if the channels are in a 2D grid
-    if (((data[0][0].size == 0 or
-          data[12][0].size == 0) and data.ndim == 2) or data.ndim == 3): 
-        n_x = data[0][1].shape[1]
+    if data.ndim == 1:
+        n_x = data.size
         if end > (n_x / fs):
             end = n_x / fs
-        data_crop = copy.deepcopy(data)
-        for i in range(0, data_crop.shape[0]):
-            for j in range(0, data_crop.shape[1]):
-                if np.size(data_crop[i][j]) != 0:
-                    data_crop[i][j] = np.asarray([data[i][j][0][int(start*fs): int(end*fs)]])
+        nx_start = int(start*fs)
+        nx_end = int(end*fs)
+        data_crop = np.array(data[nx_start: nx_end])
     
-    else:
+    elif (data.ndim == 2 and (data[0][0].size != 0 and data[12][0].size != 0)):
         n_x = data.shape[1]
         n_ch = data.shape[0]
         if end > (n_x / fs):
@@ -410,6 +616,20 @@ def crop_data(data, start=0.0, end=40.0, fs=2048):
         for i in range(0, data_crop.shape[0]):
             if np.size(data_crop[i]) != 0:
                 data_crop[i] = np.asarray([data[i][nx_start : nx_end]])
+
+        data_crop = data[:, int(start*fs): int(end*fs)]
+
+    elif (data[0][0].size == 0 or
+          data[12][0].size == 0 and data.ndim == 2) or data.ndim == 3:
+        # Flattening data if the channels are in a 2D grid
+        n_x = data[0][1].shape[1]
+        if end > (n_x / fs):
+            end = n_x / fs
+        data_crop = copy.deepcopy(data)
+        for i in range(0, data_crop.shape[0]):
+            for j in range(0, data_crop.shape[1]):
+                if np.size(data_crop[i][j]) != 0:
+                    data_crop[i][j] = np.asarray([data[i][j][0][int(start*fs): int(end*fs)]])
     
     return data_crop
 
