@@ -1,4 +1,6 @@
 from emgdecompy.decomposition import *
+from functions.preprocessing import apply_filter
+from scipy.signal import butter, iirnotch
 from scipy import linalg
 import numpy as np
 
@@ -19,6 +21,9 @@ def decomposition_tmod(
     highcut = 900,
     fs=2048,
     order=6,
+    use_notch_filter=True,
+    notch_cutoffs=[50],
+    q_factor=30,
     Tolx=10e-4,
     contrast_fun=skew,
     ortho_fun=gram_schmidt,
@@ -122,15 +127,25 @@ def decomposition_tmod(
     if np.all(discard) is not None:
         x_flt = np.delete(x_flt, discard, axis=0)
 
+
     # Applying band-pass filter
     if bandpass:
-        x_flt = np.apply_along_axis( butter_bandpass_filter, 
-                                     axis=1,
-                                     arr=x_flt, 
-                                     lowcut=lowcut, 
-                                     highcut=highcut, 
-                                     fs=fs, 
-                                     order=order)
+        bpf_num, bpf_den = butter(order, [lowcut, highcut], fs=fs, btype="band")
+        x_flt = np.apply_along_axis(apply_filter, 
+                                    axis=1, 
+                                    arr=x_flt, 
+                                    b=bpf_num, 
+                                    a=bpf_den)
+    
+    # Applying notch filter
+    if use_notch_filter:
+        for notch_cutoff in np.array(notch_cutoffs):
+            notch_num, notch_den = iirnotch(w0=notch_cutoff, Q=q_factor, fs=fs)
+            x_flt = np.apply_along_axis(apply_filter, 
+                                        axis=1, 
+                                        arr=x_flt, 
+                                        b=notch_num, 
+                                        a=notch_den)
 
     # Center
     x_flt = center_matrix(x_flt)
@@ -194,9 +209,16 @@ def decomposition_tmod(
         z_peaks = np.delete(z_peaks, z_highest_peak, axis=1)
         z_peak_heights = np.delete(z_peak_heights, z_highest_peak)
     
+    # Checkin for unique extracted motor units
+
+
     decomp_results["B"] = B[:, B.any(0)] # Only save columns of B that have accepted vectors
     if len(MUPulses) > 1:
-        decomp_results["MUPulses"] = np.array(MUPulses, dtype="object")
+        length = len(MUPulses[0])
+        if any(len(arr) != length for arr in MUPulses):
+            decomp_results["MUPulses"] = np.array(MUPulses, dtype="object")
+        else:
+            decomp_results["MUPulses"] = np.array(MUPulses, dtype="int64")
     else:
         decomp_results["MUPulses"] = np.array(MUPulses, dtype="int64")
     decomp_results["SIL"] = np.array(sils, dtype="float")
@@ -210,6 +232,18 @@ def decomposition_tmod(
     decomp_results["fsamp"] = fs
     decomp_results["ext_factor"] = R
     decomp_results["min_distance"] = l
+    decomp_results["n_iter"] = M
+    decomp_results["use_bpf"] = bandpass
+    decomp_results["lowcut_freq"] = lowcut
+    decomp_results["highcut_freq"] = highcut
+    decomp_results["order"] = order
+    decomp_results["use_notch_filter"] = use_notch_filter 
+    decomp_results["notch_cutoffs"] = notch_cutoffs
+    decomp_results["use_sil"] = sil_pnr
+    decomp_results["sil_threshold"] = thresh
+    decomp_results["max_sep_iter"] = max_iter_sep
+    decomp_results["x_tolerance"] = Tolx
+    decomp_results["max_ref_iter"] = max_iter_ref
 
     return decomp_results
 

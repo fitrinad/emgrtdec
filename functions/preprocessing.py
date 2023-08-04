@@ -78,6 +78,7 @@ def import_emg_data(empty_dict={}, name="P00", n_training=1, n_objects=3, fs=200
     
     return empty_dict
 
+
 def import_emg_data_otb(empty_dict={}, name="P01", 
                         n_training=1, n_objects=4, fs=2000, cont_length=30.0,
                         electrode_placements=["ext", "int"],
@@ -95,7 +96,7 @@ def import_emg_data_otb(empty_dict={}, name="P01",
             empty_dict[key_name_mov] = {}
             for gesture in gestures:
                 folder_name = name + "_" + electrode_placement + "_" + mvc_level + "_" + gesture
-                folder_path = "../data/" + name + "/" + folder_name
+                folder_path = "../../data/" + name + "/" + folder_name
                 # Importing force data
                 file_name_force = folder_path + "/" + folder_name + "_force.csv"
                 force_data = np.array( pd.read_csv(file_name_force, delimiter=";").T)
@@ -269,6 +270,7 @@ def calc_snr(data, noise=None, noise_start=0.0, noise_end=3.0, fs=2048):
             snr[i] = np.square(data[i]).mean() / np.square(noise).mean()
     return snr  
 
+
 def search_zero_ch(data):
     """
     Locates channels in data that contain only zeros.
@@ -296,6 +298,7 @@ def search_zero_ch(data):
             zero_ch.append(i)
     zero_ch = np.array(zero_ch, dtype="int")
     return zero_ch
+
 
 def bad_channels(data, signal="signal", thd_snr=2.0, noise = None, noise_start=0.0, noise_end=3.0, fs=2048):
     """
@@ -373,10 +376,43 @@ def discard_ch_flat(discard_ch_vec, data):
     disc_ch_flat = np.argwhere(disc_ch_flat == 1).squeeze()
     return disc_ch_flat
 
+
+def show_ext_factor(data, discard_ch, const=1000):
+    """
+    Calculates the extension factor that would be used after bad channels in discard_ch are discarded from data.
+       
+    Args:
+        data	        : numpy.ndarray
+            Array containing EMG data, could contain an empty channel
+            (if the channels are in a grid of (13,5))
+        discard_ch      : numpy.ndarray or list
+            1D int array or list containing channel numbers to be discarded
+        const           : int
+            The number of measurements acquired after data has been extended
+        
+    Returns:
+        ext_factor      : int
+            Extension factor
+    """
+    # Calculating and showing extension factor
+    if np.all(discard_ch) is not None and (data.shape[0] - discard_ch.size != 0):
+        ext_factor = int(np.ceil(const/(data.shape[0] - discard_ch.size)))
+    else:
+        ext_factor = int(np.ceil(const/(data.shape[0])))
+    print(f"Extension factor: {ext_factor}")
+    print(discard_ch)
+
+    if (data.shape[0] - discard_ch.size == 0):
+        warnings.warn("Warning: 0 channels remaining!")
+        print("Warning: 0 channels remaining!")
+    return ext_factor
+
+
 def notch_filter(data, freq_cutoff=50, fs=2048, q_factor=30): 
     b, a = iirnotch(w0=freq_cutoff, Q=q_factor, fs=fs)
     filtered_data = lfilter(b, a, data)
     return filtered_data
+
 
 def apply_filter(signal, b, a):
     filtered_data = lfilter(b=b, a=a, x=signal)

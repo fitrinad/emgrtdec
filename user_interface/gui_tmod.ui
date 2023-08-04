@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>582</width>
-    <height>511</height>
+    <height>537</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,62 +32,50 @@
          <x>10</x>
          <y>20</y>
          <width>251</width>
-         <height>351</height>
+         <height>370</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout">
-        <item row="4" column="0">
-         <widget class="QLabel" name="label_StartTime">
-          <property name="text">
-           <string>     Start (s)</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="0">
-         <widget class="QLabel" name="label_EndTime">
-          <property name="text">
-           <string>     End (s)</string>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="0">
-         <widget class="QLabel" name="label_EndTime_2">
-          <property name="text">
-           <string>     Selected array:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="1">
-         <widget class="QLineEdit" name="lineEdit_EndTime"/>
-        </item>
-        <item row="3" column="1">
-         <widget class="QLineEdit" name="lineEdit_SamplingFreq"/>
-        </item>
         <item row="6" column="1">
-         <widget class="QRadioButton" name="radioButton_FirstArray">
-          <property name="text">
-           <string>1st</string>
-          </property>
-         </widget>
+         <widget class="QLineEdit" name="lineEdit_StartTime"/>
         </item>
-        <item row="0" column="0">
-         <widget class="QLabel" name="label_EMGFile">
-          <property name="text">
-           <string>EMG file</string>
-          </property>
-         </widget>
-        </item>
-        <item row="8" column="1">
+        <item row="10" column="1">
          <widget class="QRadioButton" name="radioButton_AllArrays">
           <property name="text">
            <string>All</string>
           </property>
+          <attribute name="buttonGroup">
+           <string notr="true">buttonGroup_2</string>
+          </attribute>
          </widget>
         </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_SamplingFreq">
+        <item row="8" column="1">
+         <widget class="QRadioButton" name="radioButton_FirstArray">
           <property name="text">
-           <string>     Sampling freq.</string>
+           <string>1st</string>
+          </property>
+          <attribute name="buttonGroup">
+           <string notr="true">buttonGroup_2</string>
+          </attribute>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QRadioButton" name="radioButton_OTB_csv">
+          <property name="text">
+           <string>OTB (.csv)</string>
+          </property>
+          <attribute name="buttonGroup">
+           <string notr="true">buttonGroup</string>
+          </attribute>
+         </widget>
+        </item>
+        <item row="7" column="1">
+         <widget class="QLineEdit" name="lineEdit_EndTime"/>
+        </item>
+        <item row="14" column="0">
+         <widget class="QLabel" name="label_NoiseEnd">
+          <property name="text">
+           <string>     Noise end (s)</string>
           </property>
          </widget>
         </item>
@@ -98,62 +86,103 @@
           </property>
          </widget>
         </item>
-        <item row="4" column="1">
-         <widget class="QLineEdit" name="lineEdit_StartTime"/>
+        <item row="14" column="1">
+         <widget class="QLineEdit" name="lineEdit_NoiseEnd"/>
         </item>
-        <item row="7" column="1">
-         <widget class="QRadioButton" name="radioButton_SecondArray">
-          <property name="text">
-           <string>2nd</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QLineEdit" name="lineEdit_EMGFile"/>
-        </item>
-        <item row="10" column="0">
+        <item row="12" column="0">
          <widget class="QLabel" name="label_SelectingBadChannels">
           <property name="text">
            <string>Selecting bad channels:</string>
           </property>
          </widget>
         </item>
-        <item row="11" column="0">
-         <widget class="QLabel" name="label_NoiseStart">
+        <item row="5" column="0">
+         <widget class="QLabel" name="label_SamplingFreq">
           <property name="text">
-           <string>     Noise start (s)</string>
+           <string>     Sampling freq.</string>
           </property>
          </widget>
         </item>
-        <item row="12" column="0">
-         <widget class="QLabel" name="label_NoiseEnd">
-          <property name="text">
-           <string>     Noise end (s)</string>
-          </property>
-         </widget>
-        </item>
-        <item row="13" column="0">
+        <item row="15" column="0">
          <widget class="QLabel" name="label_SNRThreshold">
           <property name="text">
            <string>     SNR threshold</string>
           </property>
          </widget>
         </item>
-        <item row="14" column="1">
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="lineEdit_EMGFile"/>
+        </item>
+        <item row="7" column="0">
+         <widget class="QLabel" name="label_EndTime">
+          <property name="text">
+           <string>     End (s)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="0">
+         <widget class="QLabel" name="label_StartTime">
+          <property name="text">
+           <string>     Start (s)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QLineEdit" name="lineEdit_SamplingFreq"/>
+        </item>
+        <item row="16" column="1">
          <widget class="QPushButton" name="pushButton_ShowBadChannels">
           <property name="text">
            <string>Show bad channels</string>
           </property>
          </widget>
         </item>
-        <item row="11" column="1">
+        <item row="13" column="1">
          <widget class="QLineEdit" name="lineEdit_NoiseStart"/>
         </item>
-        <item row="12" column="1">
-         <widget class="QLineEdit" name="lineEdit_NoiseEnd"/>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_EMGFile">
+          <property name="text">
+           <string>EMG file</string>
+          </property>
+         </widget>
         </item>
-        <item row="13" column="1">
+        <item row="9" column="1">
+         <widget class="QRadioButton" name="radioButton_SecondArray">
+          <property name="text">
+           <string>2nd</string>
+          </property>
+          <attribute name="buttonGroup">
+           <string notr="true">buttonGroup_2</string>
+          </attribute>
+         </widget>
+        </item>
+        <item row="13" column="0">
+         <widget class="QLabel" name="label_NoiseStart">
+          <property name="text">
+           <string>     Noise start (s)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="15" column="1">
          <widget class="QLineEdit" name="lineEdit_SNRThreshold"/>
+        </item>
+        <item row="8" column="0">
+         <widget class="QLabel" name="label_EndTime_2">
+          <property name="text">
+           <string>     Selected array:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QRadioButton" name="radioButton_GUI_Muovi_csv">
+          <property name="text">
+           <string>GUI_Muovi (.csv)</string>
+          </property>
+          <attribute name="buttonGroup">
+           <string notr="true">buttonGroup</string>
+          </attribute>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -329,7 +358,7 @@
        <property name="geometry">
         <rect>
          <x>160</x>
-         <y>420</y>
+         <y>440</y>
          <width>226</width>
          <height>23</height>
         </rect>
@@ -342,7 +371,7 @@
        <property name="geometry">
         <rect>
          <x>160</x>
-         <y>390</y>
+         <y>410</y>
          <width>226</width>
          <height>23</height>
         </rect>
@@ -389,4 +418,8 @@
  </widget>
  <resources/>
  <connections/>
+ <buttongroups>
+  <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroup_2"/>
+ </buttongroups>
 </ui>
