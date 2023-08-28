@@ -641,7 +641,33 @@ def crop_data(data, start=0.0, end=40.0, fs=2048):
         nx_end = int(end*fs)
         data_crop = np.array(data[nx_start: nx_end])
     
-    elif (data.ndim == 2 and (data[0][0].size != 0 and data[12][0].size != 0)):
+    elif data.shape[0] > 12:
+        if (data.ndim == 2 and (data[0][0].size != 0 and data[12][0].size != 0)):
+            n_x = data.shape[1]
+            n_ch = data.shape[0]
+            if end > (n_x / fs):
+                end = n_x / fs
+            nx_start = int(start*fs)
+            nx_end = int(end*fs)
+            data_crop = np.zeros((n_ch, nx_end - nx_start), dtype="float")
+            for i in range(0, data_crop.shape[0]):
+                if np.size(data_crop[i]) != 0:
+                    data_crop[i] = np.asarray([data[i][nx_start : nx_end]])
+
+            data_crop = data[:, int(start*fs): int(end*fs)]
+
+        elif (data[0][0].size == 0 or
+            data[12][0].size == 0 and data.ndim == 2) or data.ndim == 3:
+            # Flattening data if the channels are in a 2D grid
+            n_x = data[0][1].shape[1]
+            if end > (n_x / fs):
+                end = n_x / fs
+            data_crop = copy.deepcopy(data)
+            for i in range(0, data_crop.shape[0]):
+                for j in range(0, data_crop.shape[1]):
+                    if np.size(data_crop[i][j]) != 0:
+                        data_crop[i][j] = np.asarray([data[i][j][0][int(start*fs): int(end*fs)]])
+    else:
         n_x = data.shape[1]
         n_ch = data.shape[0]
         if end > (n_x / fs):
@@ -654,18 +680,6 @@ def crop_data(data, start=0.0, end=40.0, fs=2048):
                 data_crop[i] = np.asarray([data[i][nx_start : nx_end]])
 
         data_crop = data[:, int(start*fs): int(end*fs)]
-
-    elif (data[0][0].size == 0 or
-          data[12][0].size == 0 and data.ndim == 2) or data.ndim == 3:
-        # Flattening data if the channels are in a 2D grid
-        n_x = data[0][1].shape[1]
-        if end > (n_x / fs):
-            end = n_x / fs
-        data_crop = copy.deepcopy(data)
-        for i in range(0, data_crop.shape[0]):
-            for j in range(0, data_crop.shape[1]):
-                if np.size(data_crop[i][j]) != 0:
-                    data_crop[i][j] = np.asarray([data[i][j][0][int(start*fs): int(end*fs)]])
     
     return data_crop
 
@@ -701,6 +715,8 @@ def crop_ind_pt(ind_pt, data, start=0.0, end=40.0, fs=2048):
     # Flattening data if the channels are in a 2D grid
     if ((data_crop[0][0].size == 0 or
          data_crop[12][0].size == 0) and data_crop.ndim == 2) or data_crop.ndim == 3:
+        ind_pt = ind_pt.squeeze()
+        n_mu = ind_pt.shape[0]
         x = data_crop[0][1].shape[1]
     else:
         x = data_crop.shape[1]

@@ -138,6 +138,8 @@ def rt_decomp(data, B_realtime,
 
     ## Squared source vectors
     s2 = np.square(s)
+    if s2.ndim == 1:
+        s2 = np.array([s2])
     peak_indices = []
     MUPulses = []
     sil_scores = []
@@ -774,17 +776,19 @@ def spike_classification(s2, peak_indices,
                 if cent_dist < thd_cent_dist:
                     add_peaks = []
 
-        # Comparing distance of each peak to signal centroid (sc_tm) and noise centroid (nc_tm), 
-        # adding peaks closer to signal centroid
-        if (sc_tm is not None) and (nc_tm is not None) and (len(add_peaks) != 0):
-            # s2_max = s2[i][add_peaks].max()
-            # add_indices = ( abs(s2[i][add_peaks]/s2_max - nc_tm[i]) > 
-            #                abs(s2[i][add_peaks]/s2_max - sc_tm[i]) )
-            
-            add_indices = ( abs(s2[i][add_peaks] - (nc_tm[i])) > 
-                            abs(s2[i][add_peaks] - (sc_tm[i])) )
-            add_peaks = add_peaks[add_indices] 
-        
+        try:
+            # Comparing distance of each peak to signal centroid (sc_tm) and noise centroid (nc_tm), 
+            # adding peaks closer to signal centroid
+            if (sc_tm is not None) and (nc_tm is not None) and (len(add_peaks) != 0):
+                # s2_max = s2[i][add_peaks].max()
+                # add_indices = ( abs(s2[i][add_peaks]/s2_max - nc_tm[i]) > 
+                #                abs(s2[i][add_peaks]/s2_max - sc_tm[i]) )
+                
+                add_indices = ( abs(s2[i][add_peaks] - (nc_tm[i])) > 
+                                abs(s2[i][add_peaks] - (sc_tm[i])) )
+                add_peaks = add_peaks[add_indices] 
+        except IndexError:
+            pass
         MUPulses.append(np.array(add_peaks, dtype="int64"))
     
     length = len(MUPulses[0])
@@ -851,9 +855,13 @@ def batch_decomp(data, B_realtime, mean_tm=None, discard=None, R=16,
                                  fs=fs,
                                  order=order,
                                  R=R)
+        if s.ndim == 1:
+            s = np.array([s])
 
         # Peak extraction
         s2, peak_indices = peak_extraction(s=s, l=l)
+        if s2.ndim == 1:
+            s2 = np.array([s2])
         
         # Spike classification
         if time == 0.0:
@@ -866,9 +874,9 @@ def batch_decomp(data, B_realtime, mean_tm=None, discard=None, R=16,
                                                         thd_sil=thd_sil, 
                                                         thd_cent_dist=thd_cent_dist,
                                                         sc_tm=sc_tm, nc_tm=nc_tm)
-            sil_scores = np.tile(cls_values["sil_scores"], (s2.shape[1], 1)).T
-            signal_centroids = np.tile(signal["signal_centroids"], (s2.shape[1], 1)).T
-            noise_centroids = np.tile(noise["noise_centroids"], (s2.shape[1], 1)).T
+            # sil_scores = np.tile(cls_values["sil_scores"], (s2.shape[1], 1)).T
+            # signal_centroids = np.tile(signal["signal_centroids"], (s2.shape[1], 1)).T
+            # noise_centroids = np.tile(noise["noise_centroids"], (s2.shape[1], 1)).T
             time += batch_size-overlap
         else:
             tmp = []
@@ -882,7 +890,7 @@ def batch_decomp(data, B_realtime, mean_tm=None, discard=None, R=16,
                                                              thd_cent_dist=thd_cent_dist,
                                                              sc_tm=sc_tm, nc_tm=nc_tm)
             MUPulses_curr = MUPulses_curr + int(time*fs)
-
+            """
             sil_scores_curr = np.tile(cls_values_curr["sil_scores"], (s2.shape[1], 1)).T
             sil_scores_curr = batch_sil(sil_scores, 
                                         sil_scores_curr, 
@@ -902,7 +910,7 @@ def batch_decomp(data, B_realtime, mean_tm=None, discard=None, R=16,
             sil_scores = sil_scores_curr
             signal_centroids = signal_centroids_curr
             noise_centroids = noise_centroids_curr
-
+            """
             for j in range(MUPulses.shape[0]):
                 add_MUPulses = MUPulses_curr[j][MUPulses_curr[j] >= (time+overlap)*fs]
                 tmp.append( np.array( np.append(MUPulses[j], add_MUPulses), dtype="int64" ) )
@@ -915,9 +923,9 @@ def batch_decomp(data, B_realtime, mean_tm=None, discard=None, R=16,
         if time >= end_time-overlap:
             break
 
-    decomp = {"MUPulses": MUPulses, "sil_scores": sil_scores, 
-              "signal_centroids": signal_centroids, 
-              "noise_centroids": noise_centroids}
+    decomp = {"MUPulses": MUPulses}# , "sil_scores": sil_scores, 
+              # "signal_centroids": signal_centroids, 
+              # "noise_centroids": noise_centroids}
     return decomp
 
 

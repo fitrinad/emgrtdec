@@ -153,11 +153,13 @@ def visualize_pt(ind_pt, data, ref_signal=None, fs=2048,
     font_medium = 20
     font_small = 16
     
-    if ind_pt.shape[0] == 1 and ind_pt.ndim > 1:
-        ind_pt = ind_pt.squeeze()
+    # if ind_pt.shape[0] == 1 and ind_pt.ndim > 1:
+    #     ind_pt = ind_pt.squeeze()
     n_mu = ind_pt.shape[0]
     if ((data[0][0].size == 0 or
          data[12][0].size == 0) and data.ndim == 2) or data.ndim == 3:
+        ind_pt = ind_pt.squeeze()
+        n_mu = ind_pt.shape[0]
         n_x = data[0][1].shape[1]
     else:
         n_x = data.shape[1]
@@ -202,6 +204,90 @@ def visualize_pt(ind_pt, data, ref_signal=None, fs=2048,
         ax[i].plot(time,pt[i-1])
         ax[i].set_ylabel(f"MU {i-1}", fontsize=font_medium)
 
+    if export_files == True:
+        plt.savefig(file_name_pdf)
+        plt.savefig(file_name_png)
+        
+    plt.show()
+
+
+def visualize_pt_color(ind_pt, data, colors=None, ref_signal=None, fs=2048, 
+                 use_filt=True, filt_size=2.0, title="decomposition",
+                 export_files=False, 
+                 file_name_pdf="decomposition.pdf", 
+                 file_name_png="decomposition.png"):
+    """
+    Plots reference signal of data and pulse trains of motor units from decomp.
+    If ref_signal = None, plots the envelope of data instead of a reference signal.
+
+    
+    Args:
+    	ind_pt  : numpy.ndarray
+            indices of motor units' pulse trains
+        data	: numpy.ndarray
+            (13, 5) array containing 64 channels of EMG data
+        fs		: float
+            sampling frequency (Hz)
+    
+    Example:
+        visualize_pt(decomp_gl_10_mod, gl_10_mod)
+    """
+    font_large = 24
+    font_medium = 20
+    font_small = 16
+    
+    # if ind_pt.shape[0] == 1 and ind_pt.ndim > 1:
+    #     ind_pt = ind_pt.squeeze()
+    n_mu = ind_pt.shape[0]
+    if ((data[0][0].size == 0 or
+         data[12][0].size == 0) and data.ndim == 2) or data.ndim == 3:
+        ind_pt = ind_pt.squeeze()
+        n_mu = ind_pt.shape[0]
+        n_x = data[0][1].shape[1]
+    else:
+        n_x = data.shape[1]
+    
+    # Pulse train
+    pt = np.zeros((n_mu, n_x), dtype="int64")
+    if n_mu > 1:
+        for i in range(n_mu):
+            pt[i][ind_pt[i]] = 1
+    else:
+        pt[0][ind_pt[0]]=1
+
+    # Creating subplot
+    n_rows = n_mu + 1
+    height_ratio = np.ones(n_rows)
+    height_ratio[0] = 5
+    plt.rcParams['figure.figsize'] = [35, 10+(2.5*(n_rows-1))]
+    fig, ax = plt.subplots(n_rows , 1, gridspec_kw={'height_ratios': height_ratio})
+    
+    x = np.arange(0, n_x, dtype="float")
+    time = x / float(fs)
+    plt.rc('xtick', labelsize=font_medium)
+    plt.rc('ytick', labelsize=font_medium)
+    if ref_signal is None:
+        # Plotting envelope of emg_data
+        envelope_data = env_data(data)
+        ax[0].plot(time, envelope_data)
+    else:
+        if use_filt:
+            # Hanning window
+            windowSize = fs * filt_size
+            window = np.hanning(windowSize)
+            window = window / window.sum()
+            ref_signal = np.convolve(window, ref_signal.squeeze(), mode='same')
+        else:
+            # Plotting ref_signal
+            ref_signal = ref_signal.squeeze()
+        ax[0].plot(time, ref_signal)
+    ax[0].set_title(title, fontsize=font_large)
+
+    for i in range(1, n_rows):
+        if colors is None:
+            colors = ['C0', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9']
+        ax[i].plot(time,pt[i-1], color = colors[(i-1) % len(colors)])
+        
     if export_files == True:
         plt.savefig(file_name_pdf)
         plt.savefig(file_name_png)

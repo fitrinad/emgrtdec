@@ -69,15 +69,15 @@ class Window_decmod(QMainWindow):   # Decomposition Module window
 
         self.min_distance = 31
         self.use_bpf = True
-        self.lowcut_freq = 10.0
-        self.highcut_freq = 900.0
-        self.order = 6
+        self.lowcut_freq = 20.0
+        self.highcut_freq = 500.0
+        self.order = 4
         self.use_sil = True
         self.sil_threshold = 0.85
         self.use_pps = False
         self.pps_threshold = 5
         
-        self.display_interval = 30.0
+        self.display_interval = 10.0
         self.update_interval = self.batch_size - self.overlap  
         self.max_nsamples = int(self.display_interval * self.fs)
 
@@ -214,14 +214,17 @@ class Window_decmod(QMainWindow):   # Decomposition Module window
             self.tmod_file = self.lineEdit_tmodFile.text()
         if self.tmod_file.endswith(".obj"):
             with open(self.tmod_file, 'rb') as f: self.tmod = pickle.load(f)
+            """
             data_tmp = loadmat(self.emg_file)['SIG']
             # EMG channels saved in grid of shape (13, 5) or (8, 8, n_samples)
             if ((data_tmp[0][0].size == 0 or 
                  data_tmp[12][0].size == 0) and data_tmp.ndim == 2) or data_tmp.ndim == 3:
                 data_tmp = flatten_signal(data_tmp)
-        """
-        elif self.emg_file.endswith(".mat"):
-        """ 
+            """
+        # TODO Load .mat file
+        elif self.tmod_file.endswith(".mat"):
+            self.tmod = loadmat(self.tmod_file)
+        
         ## Sampling frequency
         if self.lineEdit_SamplingFreq.text() != "":
             self.fs = float(self.lineEdit_SamplingFreq.text())
@@ -533,6 +536,7 @@ class Window_decmod(QMainWindow):   # Decomposition Module window
                                                 Wn=[self.lowcut_freq, self.highcut_freq], 
                                                 fs=self.fs, btype="band")
         
+
         ##  Save file name
         if self.lineEdit_Name.text() != "":
             self.save_foldername = self.lineEdit_Name.text()
@@ -923,6 +927,7 @@ class Window_decmod(QMainWindow):   # Decomposition Module window
             self.current_batch = (self.rec_dataArray_live[-int(self.batch_size*self.fs): , 
                                                         (self.grid_size[0]*self.grid_size[1])*(self.sel_array-1) : 
                                                         (self.grid_size[0]*self.grid_size[1])*self.sel_array].T)
+            
             if self.use_bpf:
                 filtered_data = np.apply_along_axis(apply_filter,
                                                         axis=1,
@@ -951,6 +956,7 @@ class Window_decmod(QMainWindow):   # Decomposition Module window
             self.current_batch = (self.rec_dataArray_live[-int(self.batch_size*self.fs): , 
                                                           (self.grid_size[0]*self.grid_size[1])*(self.sel_array-1) : 
                                                           (self.grid_size[0]*self.grid_size[1])*self.sel_array].T)
+            
             if self.use_bpf:
                 filtered_data = np.apply_along_axis(apply_filter,
                                                         axis=1,
@@ -1006,7 +1012,7 @@ class Window_decmod(QMainWindow):   # Decomposition Module window
 
     def stop_clicked(self):                 # self.pushButton_Stop.clicked
         print(self.time_diff)
-        self.save_parameters()
+        # self.save_parameters()
         self.save_results()
         self.pushButton_Plot.setEnabled(True)
         self.pushButton_Decompose.setEnabled(True)
@@ -1039,10 +1045,13 @@ class Window_decmod(QMainWindow):   # Decomposition Module window
         if self.use_arduino:
             self.serial_arduino.close()
         
+    """
     def save_parameters(self):
+        # TODO combine with save_results
         self.filename_param =  "dec_data/" + self.save_foldername + "/" + self.save_filename_param
         savemat(self.filename_param, self.parameters)
         print(f"Parameters saved in: {self.filename_param}")
+    """
 
     def save_results(self):
         self.filename_pt = "dec_data/" + self.save_foldername + "/" + self.save_filename_pt
@@ -1059,6 +1068,9 @@ class Window_decmod(QMainWindow):   # Decomposition Module window
         results["MUPulses"] = self.MUPulses
         if self.use_arduino:
             results["ref_force"] = np.array(self.ref_force)
+        
+        for key in self.parameters.keys():
+            results[key] = self.parameters[key]
         savemat(self.filename_pt, results)
         print(f"Results saved in: {self.filename_pt}")
 

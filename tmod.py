@@ -1,5 +1,6 @@
 from emgdecompy.decomposition import *
 from functions.preprocessing import apply_filter
+from functions.analysis import unique_mu
 from scipy.signal import butter, iirnotch
 from scipy import linalg
 import numpy as np
@@ -33,7 +34,8 @@ def decomposition_tmod(
     thresh=0.9,
     max_iter_ref=10,
     random_seed=None,
-    verbose=False
+    verbose=False,
+    similarity_thd = 0.9
 ):
     """
     Decomposition function from: 
@@ -115,6 +117,8 @@ def decomposition_tmod(
                     Extension factor
                 min_distance    : int
                     Required minimal horizontal distance between peaks in peak-finding algorithm
+                unique_mu       : list
+                    List of unique extracted motor units
     """
     # Flattening data, excluding the empty channel, if the channels are in a grid of (13, 5)
     if ((x[0][0].size == 0 or
@@ -209,8 +213,7 @@ def decomposition_tmod(
         z_peaks = np.delete(z_peaks, z_highest_peak, axis=1)
         z_peak_heights = np.delete(z_peak_heights, z_highest_peak)
     
-    # Checkin for unique extracted motor units
-
+    
 
     decomp_results["B"] = B[:, B.any(0)] # Only save columns of B that have accepted vectors
     if len(MUPulses) > 1:
@@ -244,7 +247,18 @@ def decomposition_tmod(
     decomp_results["max_sep_iter"] = max_iter_sep
     decomp_results["x_tolerance"] = Tolx
     decomp_results["max_ref_iter"] = max_iter_ref
+    
+    # Checking for unique extracted motor units
+    if decomp_results["MUPulses"].size != 0:
+        unique_mus = unique_mu(ind_pt = decomp_results["MUPulses"], 
+                              data = x, 
+                              min_distance = l, 
+                              thr=similarity_thd)
+    else:
+        unique_mus = []
 
+    decomp_results["unique_mu"] = unique_mus
+    
     return decomp_results
 
 

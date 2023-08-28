@@ -30,7 +30,7 @@ class Window_tmod(QMainWindow):     # Training Module window
         # Default parameter values
         self.emg_file = "./data/experimental_data_raw/gm_10.mat"
         self.fs = loadmat(self.emg_file)['fsamp'].squeeze()
-        self.sel_array = 1           # Selected electrode array: 1 or 2
+        self.sel_array = 1              # Selected electrode array: 1 or 2
         self.grid_size = (8, 8)         # Grid size: (8, 8) or (16, 8)
         self.start_time = 0.0
         self.end_time = 68.0
@@ -47,9 +47,9 @@ class Window_tmod(QMainWindow):     # Training Module window
         self.n_iter = 64
         self.min_distance = 31
         self.use_bpf = True
-        self.lowcut_freq = 10.0
-        self.highcut_freq = 900.0
-        self.order = 6
+        self.lowcut_freq = 20.0
+        self.highcut_freq = 500.0
+        self.order = 4
         self.use_sil = True
         self.sil_threshold = 0.9
         self.max_sep_iter = 10
@@ -152,6 +152,8 @@ class Window_tmod(QMainWindow):     # Training Module window
             self.ext_factor = int(np.ceil(1000/(self.data_tm.shape[0] - self.discard_ch.size)))
         else:
             self.ext_factor = int(np.ceil(1000/(self.data_tm.shape[0])))
+        
+        print(self.data_tm.shape)
         print(f"Extension factor: {self.ext_factor}")
         self.lineEdit_ExtFactor.setText(str(self.ext_factor))
         
@@ -193,22 +195,32 @@ class Window_tmod(QMainWindow):     # Training Module window
                                      start=self.start_time, end=self.end_time,
                                      fs=self.fs)
         elif self.emg_file.endswith(".csv"):
-            """
-            data_tmp = np.loadtxt(self.emg_file, delimiter=',')
-            # if self.sel_array is not None:
-            data_tmp = (data_tmp[1:,  (self.grid_size[0]*self.grid_size[1]) * (self.sel_array-1) :
-                                          (self.grid_size[0]*self.grid_size[1]) * self.sel_array].T  )
-            """
-            data_tmp = np.array( pd.read_csv(self.emg_file) )
-            data_tmp = (data_tmp[:,  (self.grid_size[0]*self.grid_size[1]) * (self.sel_array-1) :
-                                      (self.grid_size[0]*self.grid_size[1]) * self.sel_array].T  )
-            # else:
-            #     data_tmp = data_tmp[1:,  :].T
+            if self.radioButton_GUI_Muovi_csv.isChecked():
+            # TODO add load .csv for files from OTB, combine with radioButtons
+            # EMG file recorded with GUI_Muovi
+                """
+                data_tmp = np.loadtxt(self.emg_file, delimiter=',')
+                # if self.sel_array is not None:
+                data_tmp = (data_tmp[1:,  (self.grid_size[0]*self.grid_size[1]) * (self.sel_array-1) :
+                                            (self.grid_size[0]*self.grid_size[1]) * self.sel_array].T  )
+                """
+                data_tmp = np.array( pd.read_csv(self.emg_file) )
+                data_tmp = (data_tmp[:,  (self.grid_size[0]*self.grid_size[1]) * (self.sel_array-1) :
+                                        (self.grid_size[0]*self.grid_size[1]) * self.sel_array].T  )
+                # else:
+                #     data_tmp = data_tmp[1:,  :].T
+            
+            if self.radioButton_OTB_csv.isChecked():
+            # TODO: Read .csv EMG file exported from OTB
+                data_tmp = np.array( pd.read_csv(self.emg_file, delimiter=";") )
+                data_tmp = data_tmp[1:, (self.grid_size[0]*self.grid_size[1]) * (self.sel_array-1) :
+                                        (self.grid_size[0]*self.grid_size[1]) * self.sel_array].T
+            
             if (self.end_time > data_tmp.shape[1]/self.fs):
                 self.end_time = data_tmp.shape[1]/self.fs        
             self.data_tm = crop_data(data=data_tmp, 
-                                     start=self.start_time, end=self.end_time, 
-                                     fs=self.fs)
+                                        start=self.start_time, end=self.end_time, 
+                                        fs=self.fs)
 
         ## Selected noise and SNR threshold
         if self.lineEdit_NoiseStart.text() != "":
@@ -396,22 +408,33 @@ class Window_tmod(QMainWindow):     # Training Module window
                                               verbose=False)
         # Saving results and parameters
         self.save_results()
-        self.save_parameters()        
+        # self.save_parameters()        
         self.show_results()
 
     def save_results(self):
+        # TODO save as .mat instead of .obj, include parameters
+        for key in self.parameters.keys():
+            self.decomp_tmod[key] = self.parameters[key]
+
+        saveresults_path = "./tmod_data/" + self.save_filename + ".mat"
+        savemat(saveresults_path, self.decomp_tmod)
+        """
         saveresults_path = "./tmod_data/" + self.save_filename + ".obj"
         decomp_sample_pkl = open(saveresults_path, 'wb') 
         pickle.dump(self.decomp_tmod, decomp_sample_pkl)
         decomp_sample_pkl.close()
+        """
         print(f"Results saved in: {saveresults_path}")
-
+        
+    """
     def save_parameters(self):
+        # TODO merge with save_results
         saveparams_path = "./tmod_data/" + self.save_filename + "_param" + ".mat"
         savemat(saveparams_path, self.parameters)
         # np.savetxt(saveparams_path, self.parameters, delimiter=",", fmt="%s")
         print(f"Parameters saved in: {saveparams_path}")
-
+    """
+    
     def show_results(self):
         # Showing parameters and number of extracted MUs
         self.message = QMessageBox()
