@@ -5,7 +5,6 @@ import warnings
 import copy
 import os
 from scipy import interpolate
-from scipy.io import loadmat
 from scipy.signal import butter, lfilter, iirnotch
 from emgdecompy.preprocessing import flatten_signal
 
@@ -15,10 +14,33 @@ def import_emg_data(empty_dict={}, name="P00", n_training=1, n_objects=3, fs=200
                     data_types=["10_train", "30_train", "10_mov", "30_mov"],
                     gestures=["rest_calibration", "close", "pinch", "tripod"]):
     """
-    # Hanning window
-    windowSize = fs * filt_size
-    window = np.hanning(windowSize)
-    window = window / window.sum()
+    Imports .csv files containing EMG data recorded with GUI_Muovi
+
+    Args:
+    	empty_dict              : dict
+            Empty dictionary to be filled with the recorded EMG data
+        name                    : string
+            Name of folder containing all the recorded EMG data
+        n_training              : int
+            Number of recorded training data
+        n_objects               : int
+            Number of objects used for the movement data
+        fs                      : float
+            Sampling frequency
+        electrode_placements    : list
+            "ext" for extrinsic, "int" for intrinsic
+        data_types              : list
+            "10_train"  : training data at 10% MVC
+            "30_train"  : training data at 30% MVC
+            "10_mov"    : movement data (with objects) at 10% MVC
+            "30_mov"    : movement data (with objects) at 30% MVC
+        gestures                : list
+            List of gestures recorded
+
+        
+    Returns:
+        empty_dict     : dictionary
+            Dictionary containing imported EMG data
     """
     for electrode_placement in electrode_placements:
         for data_type in data_types:
@@ -84,6 +106,34 @@ def import_emg_data_otb(empty_dict={}, name="P01",
                         electrode_placements=["ext", "int"],
                         mvc_levels=["10", "30"],
                         gestures=["close", "pinch", "tripod"]):
+    """
+    Imports .csv files containing EMG data recorded with OTBiolab+.
+
+    Args:
+    	empty_dict              : dict
+            Empty dictionary to be filled with the recorded EMG data
+        name                    : string
+            Name of folder containing all the recorded EMG data
+        n_training              : int
+            Number of recorded training data
+        n_objects               : int
+            Number of objects used for the movement data
+        fs                      : float
+            Sampling frequency
+        cont_length             : float
+            Length of a recorded contraction in seconds. 
+            (Default: 5s rest - 5s ramp up - 10s constant - 5s ramp down - 5s rest = 30s)
+        electrode_placements    : list
+            "ext" for extrinsic, "int" for intrinsic
+        mvc_levels              : list
+            Contraction levels recorded (in % MVC)
+        gestures                : list
+            List of gestures recorded
+        
+    Returns:
+        empty_dict     : dict
+            Dictionary containing imported EMG data
+    """
     for electrode_placement in electrode_placements:
         if electrode_placement == "ext":
             muscle_names = ["flexor", "extensor"]
@@ -683,7 +733,6 @@ def crop_data(data, start=0.0, end=40.0, fs=2048):
     
     return data_crop
 
-    
 
 def crop_ind_pt(ind_pt, data, start=0.0, end=40.0, fs=2048):
     """

@@ -4,8 +4,6 @@ from scipy.signal import butter, lfilter
 from scipy.io import loadmat
 import networkx as nx
 from emgdecompy.preprocessing import flatten_signal
-from emgdecompy.viz import muap_dict
-
 
 
 def import_n_mu(n_mu={}, name="P01", 
@@ -13,6 +11,9 @@ def import_n_mu(n_mu={}, name="P01",
                 electrode_placements=["ext", "int"],
                 mvc_levels=["10", "30"],
                 gestures=["close", "pinch", "tripod"]):
+    """
+    Imports number of MUs extracted from .mat files containing decomposition results 
+    """
     data_types = []
     thd_similarity = 0.9
     
@@ -161,64 +162,6 @@ def import_n_mu(n_mu={}, name="P01",
     return n_mu
 
 
-def import_n_mu_mat(n_mu={}, name="P01", 
-                n_training=1, n_objects=4,
-                electrode_placements=["ext", "int"],
-                mvc_levels=["10", "30"],
-                gestures=["close", "pinch", "tripod"]):
-    data_types = []
-    thd_similarity = 0.9
-    
-    file_path = ("../../data/" + name + "/" + 
-                    name + "_n_mu.mat")
-    n_mu_import = loadmat(file_path)
-    
-
-    for mvc_level in mvc_levels:
-        data_types.append(mvc_level+"_train")
-    for mvc_level in mvc_levels:
-        data_types.append(mvc_level+"_mov")
-    
-    muscle_ext = ["flexor", "extensor"]
-    muscle_int = ["fdi", "second_di"]
-    for electrode_placement in electrode_placements:
-        for data_type in data_types:
-            key_name = electrode_placement + "_" + data_type
-            n_mu[key_name] = {}
-            for gesture in gestures:
-                if (data_type == "10_train") or (data_type == "30_train"):
-                    if gesture != "rest_calibration":
-                        for i in range(1, n_training+1):
-                            training_gesture = gesture + str(i)
-                            n_mu[key_name][training_gesture] = {}
-                            if electrode_placement == "ext":
-                                n_mu[key_name][training_gesture][muscle_ext[0]] = int(n_mu_import[key_name][training_gesture][muscle_ext[0]])
-                                
-                                n_mu[key_name][training_gesture][muscle_ext[1]] = int(n_mu_import[key_name][training_gesture][muscle_ext[1]])
-                                
-                            elif electrode_placement == "int":
-                                n_mu[key_name][training_gesture][muscle_int[0]] = int(n_mu_import[key_name][training_gesture][muscle_int[0]])
-                                                               
-                                n_mu[key_name][training_gesture][muscle_int[1]] = int(n_mu_import[key_name][training_gesture][muscle_int[1]])
-                                
-                if (data_type == "10_mov") or (data_type == "30_mov"):
-                    if gesture != "rest_calibration":
-                        for i in range(1, n_objects+1):
-                            movement_gesture = gesture + str(i)
-                            n_mu[key_name][movement_gesture] = {}
-                            if electrode_placement == "ext":
-                                n_mu[key_name][movement_gesture][muscle_ext[0]] = int(n_mu_import[key_name][movement_gesture][muscle_ext[0]])
-                                
-                                n_mu[key_name][movement_gesture][muscle_ext[1]] = int(n_mu_import[key_name][movement_gesture][muscle_ext[1]])
-                                
-                            elif electrode_placement == "int":
-                                n_mu[key_name][movement_gesture][muscle_int[0]] = int(n_mu_import[key_name][movement_gesture][muscle_int[0]])
-                                                    
-                                n_mu[key_name][movement_gesture][muscle_int[1]] = int(n_mu_import[key_name][movement_gesture][muscle_int[1]])
-            
-    return n_mu
-
-
 def all_n_mu(n_mu, n_mu_all={}, 
              names=["P01", "P07", "P08", "P09", "P10"],
              n_training=1, n_objects=4,
@@ -305,31 +248,6 @@ def import_firing_rate(firing_rate={}, name="P01",
             key_name = electrode_placement + "_" + data_type
             firing_rate[key_name] = {}
             for gesture in gestures:
-                """
-                if (data_type == "10_train") or (data_type == "30_train"):
-                    if gesture != "rest_calibration":
-                        for i in range(1, n_training+1):
-                            training_gesture = gesture + str(i)
-                            n_mu[key_name][training_gesture] = {}
-                            if electrode_placement == "ext":
-                                file_path = ("../../data/" + name + "/offline/" + 
-                                            name + "_" + key_name + "_" + 
-                                            training_gesture + "_" + muscle_ext[0])
-                                n_mu[key_name][training_gesture][muscle_ext[0]] = loadmat(file_path)["unique_mu"].size
-                                file_path = ("../../data/" + name + "/offline/" + 
-                                            name + "_" + key_name + "_" + 
-                                            training_gesture + "_" + muscle_ext[1])
-                                n_mu[key_name][training_gesture][muscle_ext[1]] = loadmat(file_path)["unique_mu"].size
-                            elif electrode_placement == "int":
-                                file_path = ("../../data/" + name + "/offline/" + 
-                                            name + "_" + key_name + "_" + 
-                                            training_gesture + "_" + muscle_int[0])
-                                n_mu[key_name][training_gesture][muscle_int[0]] = loadmat(file_path)["unique_mu"].size
-                                file_path = ("../../data/" + name + "/offline/" + 
-                                            name + "_" + key_name + "_" + 
-                                            training_gesture + "_" + muscle_int[1])
-                                n_mu[key_name][training_gesture][muscle_int[1]] = loadmat(file_path)["unique_mu"].size
-                """
                 if (data_type == "10_mov") or (data_type == "30_mov"):
                     if gesture != "rest_calibration":
                         for i in range(1, n_objects+1):
@@ -355,6 +273,7 @@ def import_firing_rate(firing_rate={}, name="P01",
                                 firing_rate[key_name][movement_gesture][muscle_int[1]] = list(loadmat(file_path)["mean_firing_rate"].flatten())
     return firing_rate
 
+
 def all_firing_rate(firing_rate, firing_rate_all={}, 
                     names=["P01", "P07", "P08", "P09", "P10"],
                     n_training=1, n_objects=4,
@@ -374,31 +293,6 @@ def all_firing_rate(firing_rate, firing_rate_all={},
             key_name = electrode_placement + "_" + data_type
             firing_rate_all[key_name] = {}
             for gesture in gestures:
-                """
-                if (data_type == "10_train") or (data_type == "30_train"):
-                    if gesture != "rest_calibration":
-                        for i in range(1, n_training+1):
-                            training_gesture = gesture + str(i)
-                            n_mu_all[key_name][training_gesture] = {}
-                            if electrode_placement == "ext":
-                                n_mu_data = []
-                                for name in names:
-                                    n_mu_data.append(n_mu[name][key_name][training_gesture][muscle_ext[0]])  
-                                n_mu_all[key_name][training_gesture][muscle_ext[0]] = n_mu_data
-                                n_mu_data = []
-                                for name in names:
-                                    n_mu_data.append(n_mu[name][key_name][training_gesture][muscle_ext[1]])  
-                                n_mu_all[key_name][training_gesture][muscle_ext[1]] = n_mu_data
-                            elif electrode_placement == "int":
-                                n_mu_data = []
-                                for name in names:
-                                    n_mu_data.append(n_mu[name][key_name][training_gesture][muscle_int[0]])  
-                                n_mu_all[key_name][training_gesture][muscle_int[0]] = n_mu_data
-                                n_mu_data = []
-                                for name in names:
-                                    n_mu_data.append(n_mu[name][key_name][training_gesture][muscle_int[1]])  
-                                n_mu_all[key_name][training_gesture][muscle_int[1]] = n_mu_data
-                """
                 if (data_type == "10_mov") or (data_type == "30_mov"):
                     if gesture != "rest_calibration":
                         for i in range(1, n_objects+1):
@@ -523,20 +417,18 @@ def import_offline_decomp(offline_decomp={}, name="P01",
     return offline_decomp
 
 
-def calc_highest_corr(muscle_1, muscle_2, 
+def calc_mean_cc(muscle_1, muscle_2, 
                       unique_mu_1, unique_mu_2,
                       has_one_mu_1, has_one_mu_2,
                       electrode_placements, data_types, min_distance,
                       idx_electrode_placement, idx_data_type, idx_gesture,
                       offline_decomp, decomp_data):
-    
-    max_corr_muaps_idx = None
-    max_corr_muaps = None
 
-    key = electrode_placements[idx_electrode_placement] + "_" + data_types[idx_data_type]
-    key_name = list(decomp_data[key].keys())[idx_gesture]
     if (muscle_1 == "flexor" or muscle_1 == "extensor"):
-        key = electrode_placements[0] + "_" + data_types[idx_data_type]
+        key = "ext_" + data_types[idx_data_type]
+        key_name = list(decomp_data[key].keys())[idx_gesture] 
+    elif (muscle_1 == "fdi" or muscle_1 == "second_di"):
+        key = "int_" + data_types[idx_data_type]
         key_name = list(decomp_data[key].keys())[idx_gesture] 
 
     raw_1 = offline_decomp[key][key_name][muscle_1]["SIG"].squeeze()
@@ -556,11 +448,11 @@ def calc_highest_corr(muscle_1, muscle_2,
             pt_1 = np.array(tmp, dtype="object")
 
     if (muscle_2 == "flexor" or muscle_2 == "extensor"):
-        key2 = electrode_placements[0] + "_" + data_types[idx_data_type]
+        key2 = "ext_" + data_types[idx_data_type]
         key_name2 = list(decomp_data[key2].keys())[idx_gesture]
-    else:
-        key2 = key
-        key_name2 = key_name
+    elif (muscle_2 == "fdi" or muscle_2 == "second_di"):
+        key2 = "int_" + data_types[idx_data_type]
+        key_name2 = list(decomp_data[key2].keys())[idx_gesture]
     raw_2 = offline_decomp[key2][key_name2][muscle_2]["SIG"].squeeze()
 
     if has_one_mu_2 == True:
@@ -586,15 +478,96 @@ def calc_highest_corr(muscle_1, muscle_2,
                                     l = min_distance)
 
         # Cross correlation between MUAPs of 2 decompositions:
-        cc_values = cross_corr(muap_dict_1, muap_dict_2)
+        switch_nan = 0.0
+        if muscle_1 == muscle_2:
+            switch_nan = 1.0
+        cc_values = cross_corr(muap_dict_1, muap_dict_2, switch_nan = switch_nan)
         mean_cc_values = mean_cc(cc_values)
 
+    else:
+        print(f"{muscle_1} MUPulses size = {pt_1.size}")
+        print(f"{muscle_2} MUPulses size = {pt_2.size}")
+
+    return mean_cc_values
+
+
+def calc_highest_corr(muscle_1, muscle_2, 
+                      unique_mu_1, unique_mu_2,
+                      has_one_mu_1, has_one_mu_2,
+                      electrode_placements, data_types, min_distance,
+                      idx_electrode_placement, idx_data_type, idx_gesture,
+                      offline_decomp, decomp_data):
+    
+    max_corr_muaps_idx = None
+    max_corr_muaps = None
+
+    if (muscle_1 == "flexor" or muscle_1 == "extensor"):
+        key = "ext_" + data_types[idx_data_type]
+        key_name = list(decomp_data[key].keys())[idx_gesture] 
+    elif (muscle_1 == "fdi" or muscle_1 == "second_di"):
+        key = "int_" + data_types[idx_data_type]
+        key_name = list(decomp_data[key].keys())[idx_gesture] 
+
+    raw_1 = offline_decomp[key][key_name][muscle_1]["SIG"].squeeze()
+    
+    if has_one_mu_1 == True:
+        pt_1 = np.array([offline_decomp[key][key_name][muscle_1]["MUPulses"].squeeze()])
+    else:
+        pt_1 = offline_decomp[key][key_name][muscle_1]["MUPulses"].squeeze()
+        tmp = []
+        n_mu_1 = pt_1.shape[0]
+        if unique_mu_1 is not None:
+            mask = np.zeros(n_mu_1)
+            mask[unique_mu_1] = 1
+            for i in range(n_mu_1):
+                if mask[i] == 1:
+                    tmp.append(pt_1[i])
+            pt_1 = np.array(tmp, dtype="object")
+
+    if (muscle_2 == "flexor" or muscle_2 == "extensor"):
+        key2 = "ext_" + data_types[idx_data_type]
+        key_name2 = list(decomp_data[key2].keys())[idx_gesture]
+    elif (muscle_2 == "fdi" or muscle_2 == "second_di"):
+        key2 = "int_" + data_types[idx_data_type]
+        key_name2 = list(decomp_data[key2].keys())[idx_gesture]
+    raw_2 = offline_decomp[key2][key_name2][muscle_2]["SIG"].squeeze()
+
+    if has_one_mu_2 == True:
+        pt_2 = np.array([offline_decomp[key2][key_name2][muscle_2]["MUPulses"].squeeze()])
+    else:
+        pt_2 = offline_decomp[key2][key_name2][muscle_2]["MUPulses"].squeeze()
+        tmp = []
+        n_mu_2 = pt_2.shape[0]
+        if unique_mu_2 is not None:
+            mask = np.zeros(n_mu_2)
+            mask[unique_mu_2] = 1
+            for i in range(n_mu_2):
+                if mask[i] == 1:
+                    tmp.append(pt_2[i])
+            pt_2 = np.array(tmp, dtype="object")
+
+    if (pt_1.size != 0) and (pt_2.size != 0):
+        muap_dict_1 = muap_dict_mod(raw = raw_1,
+                                    pt = pt_1,
+                                    l = min_distance)
+        muap_dict_2 = muap_dict_mod(raw = raw_2,
+                                    pt = pt_2,
+                                    l = min_distance)
+
+        # Cross correlation between MUAPs of 2 decompositions:
+        switch_nan = 0.0
+        if muscle_1 == muscle_2:
+            switch_nan = 1.0
+        cc_values = cross_corr(muap_dict_1, muap_dict_2, switch_nan = switch_nan)
+        mean_cc_values = mean_cc(cc_values)
+        
         # MUs of decomposition_2 with highest correlation to MUs of decomposition_1
         max_corr_muaps_idx = mean_cc_values.argmax(axis=1)
         max_corr_muaps = mean_cc_values.max(axis=1)
         print(f"Highest cross-correlation values between MUAP shapes in {muscle_1} and {muscle_2}")
         print(max_corr_muaps_idx)
         print(max_corr_muaps)
+        
 
     else:
         print(f"{muscle_1} MUPulses size = {pt_1.size}")
@@ -656,7 +629,7 @@ def calc_roa(ind_pt1, ind_pt2, data, decomp="realtime_decomp"):
     
 
 
-def cross_corr(muap_dict_1, muap_dict_2):
+def cross_corr(muap_dict_1, muap_dict_2, switch_nan=0.0):
     """
     Calculates the cross correlation between motor unit action potentials (MUAPs) of 2 decompositions, 
     muap_dict_1 and muap_dict_2.
@@ -706,7 +679,7 @@ def cross_corr(muap_dict_1, muap_dict_2):
                 # Store value in array
                 cc_values[i][j][k] = cc_muap
                 
-    cc_values = np.nan_to_num(cc_values)
+    cc_values = np.nan_to_num(x = cc_values, nan = switch_nan)
     return cc_values
     
 
@@ -944,7 +917,7 @@ def group_similar_mu(ind_pt, data, min_distance=30, thr=0.9):
             if pair[0] != pair[1]:
                 unique_similar_mu_pairs.append(pair)
     
-    # TODO connect MU pairs to groups
+    # Connecting MU pairs to groups
     similar_mu_groups = []
     if np.size(unique_similar_mu_pairs) > 0:
         G = nx.Graph()
@@ -977,7 +950,7 @@ def unique_mu(ind_pt, data, min_distance=30, thr=0.9):
     similar_mu_groups = group_similar_mu(ind_pt=ind_pt, data=data, min_distance=min_distance, thr=thr)
     all_mu = list(np.arange(ind_pt.shape[0]))
     discard_mu = []
-    # TODO Only take 1 MU from each unique group
+    # Taking only 1 MU from each unique group
     if np.size(similar_mu_groups) != 0:
         for similar_mu_group in similar_mu_groups:
             # Excluding the first MU in each group, add the duplicate MUs to discard_mu 
@@ -1101,7 +1074,6 @@ def plot_firing_rate(ind_pt, data, time_bin=.4, filt=True, filt_size=.2, fs=2048
     font_small = 16
     
     n_mu = ind_pt.shape[0]
-    n_bin = int(time_bin * fs)
     
     if ((data[0][0].size == 0 or
          data[12][0].size == 0) and data.ndim == 2) or data.ndim == 3:
@@ -1110,7 +1082,6 @@ def plot_firing_rate(ind_pt, data, time_bin=.4, filt=True, filt_size=.2, fs=2048
         n_x = data.shape[1]
     
     # Firing rate for each MU 
-    firing_rates = np.zeros((n_mu, n_x), dtype="float")
     filtered = np.zeros((n_mu, n_x), dtype="float")
     
     for mu in range(n_mu):

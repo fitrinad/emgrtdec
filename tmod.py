@@ -276,6 +276,16 @@ def sep_realtime(x, B, discard=None, center=True,
             Matrix containing separation vectors from training module
         discard     : int or array of ints
             Indices of channels to be discarded
+        bandpass    : bool
+            Use a butterworth bandpass filter before extending x
+        lowcut      : float
+            Low cutoff frequency of bandpass filter
+        highcut     : float
+            High cutoff frequency of bandpass filter
+        fs          : float
+            Sampling frequency
+        order       : int
+            Order of bandpass filter
         R           : int
             How far to extend x
 

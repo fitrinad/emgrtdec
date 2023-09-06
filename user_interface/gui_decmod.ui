@@ -413,20 +413,6 @@ between peaks</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="0">
-        <widget class="QCheckBox" name="checkBox_SIL">
-         <property name="text">
-          <string>SIL</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_SILThreshold">
-         <property name="text">
-          <string>     SIL threshold</string>
-         </property>
-        </widget>
-       </item>
        <item row="4" column="3">
         <widget class="QLabel" name="label_highcutFreq">
          <property name="text">
@@ -596,6 +582,20 @@ between peaks</string>
          </property>
          <property name="text">
           <string>Stop</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="label_SILThreshold">
+         <property name="text">
+          <string>     SIL threshold</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QCheckBox" name="checkBox_SIL">
+         <property name="text">
+          <string>SIL</string>
          </property>
         </widget>
        </item>

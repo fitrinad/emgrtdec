@@ -6,8 +6,6 @@ from scipy.io import (loadmat, savemat)
 import pickle
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from Worker import Worker
 import collections
 from MuoviHandler import MuoviApp
@@ -20,11 +18,10 @@ from scipy.signal import butter
 
 import os
 import time
+from emgdecompy.preprocessing import flatten_signal
 from functions.preprocessing import (crop_data, apply_filter)
-from tmod import *
-from decmod import (rt_decomp, sim_decomp_plot)
-from rt_decmod_cy.rt_decomp_live_cy import rt_decomp_live_cy
-from rt_decmod_cy.rt_decomp_plotpg_cy import rt_decomp_plotpg_cy
+from tmod import sep_realtime
+from decmod import (rt_decomp, rt_decomp_live, rt_decomp_plotpg)
 
 
 abs_path = os.path.dirname(__file__)
@@ -72,7 +69,7 @@ class Window_decmod(QMainWindow):   # Decomposition Module window
         self.lowcut_freq = 20.0
         self.highcut_freq = 500.0
         self.order = 4
-        self.use_sil = True
+        self.use_sil = False
         self.sil_threshold = 0.85
         self.use_pps = False
         self.pps_threshold = 5
@@ -129,8 +126,8 @@ class Window_decmod(QMainWindow):   # Decomposition Module window
         self.data_live.append(np.zeros((16, 8)))
         self.data_live.append(np.zeros((16, 8)))
         self.data_live.append(np.zeros((16, 8)))
-        #self.data_live.append(np.zeros((16, 8)))
-        data_live = np.uint8(self.data_live[-1])
+        # self.data_live.append(np.zeros((16, 8)))
+        # data_live = np.uint8(self.data_live[-1])
         
         self.current_batch = []
         
@@ -212,16 +209,10 @@ class Window_decmod(QMainWindow):   # Decomposition Module window
         ##  Trained module selected
         if self.lineEdit_tmodFile.text() != "":
             self.tmod_file = self.lineEdit_tmodFile.text()
+        # Loading .obj file
         if self.tmod_file.endswith(".obj"):
             with open(self.tmod_file, 'rb') as f: self.tmod = pickle.load(f)
-            """
-            data_tmp = loadmat(self.emg_file)['SIG']
-            # EMG channels saved in grid of shape (13, 5) or (8, 8, n_samples)
-            if ((data_tmp[0][0].size == 0 or 
-                 data_tmp[12][0].size == 0) and data_tmp.ndim == 2) or data_tmp.ndim == 3:
-                data_tmp = flatten_signal(data_tmp)
-            """
-        # TODO Load .mat file
+        # Loading .mat file
         elif self.tmod_file.endswith(".mat"):
             self.tmod = loadmat(self.tmod_file)
         
@@ -390,9 +381,7 @@ class Window_decmod(QMainWindow):   # Decomposition Module window
             self.visTimer.timeout.connect(self.decomp_sim)
             self.visTimer.start(int((self.update_interval) * 1000))
             self.is_recording = True
-            # self.is_recording_sim = True
-            
-            # self.record_emgsim()
+           
         else:
         # 2. Using realtime HD sEMG data:
             # Initialization
@@ -454,22 +443,6 @@ class Window_decmod(QMainWindow):   # Decomposition Module window
             self.emgdata_rt = crop_data(data=data_tmp, 
                                         start=self.start_time, end=self.end_time, 
                                         fs=self.fs)
-        """
-        if self.emg_file.endswith(".mat"):
-            if (self.end_time > flatten_signal(loadmat(self.emg_file)['SIG']).shape[1]/self.fs):
-                self.end_time = flatten_signal(loadmat(self.emg_file)['SIG']).shape[1]/self.fs        
-            self.emgdata_rt = flatten_signal(crop_data(data=loadmat(self.emg_file)['SIG'], 
-                                                       start=self.start_time, end=self.end_time,
-                                                       fs=self.fs))
-        elif self.emg_file.endswith(".csv"):
-            data_tmp = np.loadtxt(self.emg_file, delimiter=',')
-            data_tmp = data_tmp[1:, :].T
-            if (self.end_time > data_tmp.shape[1]/self.fs):
-                self.end_time = data_tmp.shape[1]/self.fs        
-            self.emgdata_rt = crop_data(data=data_tmp, 
-                                        start=self.start_time, end=self.end_time, 
-                                        fs=self.fs)
-        """
 
         ## Selected array for live EMG data
         if self.radioButton_FirstArray.isChecked():
@@ -639,16 +612,10 @@ class Window_decmod(QMainWindow):   # Decomposition Module window
         # 1. Using simulated data:
         if self.use_simulated_data == True:    
             # Updating next plots:
-            if self.plotter == "pg":
-                self.visTimer.timeout.connect(self.update_plots_sim_pg)
-                # self.visTimer.timeout.connect(self.update_plots_sim_pg_multiprocess)
-            else:
-                self.visTimer.timeout.connect(self.update_plots_sim_plt)
+            self.visTimer.timeout.connect(self.update_plots_sim_pg)
             self.visTimer.start(int((self.update_interval) * 1000))
             self.is_recording = True
-            # self.is_recording_sim = True
             
-            # self.record_emgsim()
         else:
         # 2. Using realtime HD sEMG data:
             # Initialization
@@ -683,7 +650,6 @@ class Window_decmod(QMainWindow):   # Decomposition Module window
         self.start_time_plot = time.time()
 
     def init_plot(self):
-        self.plotter = "pg"
         self.n_rows = len(self.checked_MUs)
         self.MUPulses = []
         self.plot_line = []
@@ -692,51 +658,29 @@ class Window_decmod(QMainWindow):   # Decomposition Module window
         self.time_axis = self.x_axis/self.fs
         self.time_diff = 0.0
         
-        # Clear plots if widget_Decomposition has been used
+        # Clearing plots if widget_Decomposition has been used
         if self.widget_Decomposition.layout() is None:
             self.lay = QtWidgets.QVBoxLayout(self.widget_Decomposition)
         else:
             self.lay.removeWidget(self.plotWidget)
             self.plotWidget.setParent(None)
-            # self.lay.addWidget(self.plotWidget)
             
-            # self.lay = QtWidgets.QVBoxLayout(self.widget_Decomposition)
-            
-
         # Initializing plot
-        if self.plotter == "pg":        
-            # self.line_handler = collections.deque(maxlen = self.max_nsamples)
-            self.line_handler = [None for i in range(self.n_rows)]
-            
-            self.plotWidget = pg.GraphicsLayoutWidget()
-            self.lay.addWidget(self.plotWidget)
-            for i in range(self.n_rows):
-                self.plot_handler = self.plotWidget.addPlot()
-                self.plot_handler.setYRange(0, 1)
-                self.plot_handler.setLabel('left', f"MU {self.checked_MUs[i]}")
-                self.plotWidget.nextRow()
-                self.line_handler[i] = self.plot_handler.plot(pen=pg.mkPen(i))
-                self.line_handler[i].setData(self.time_axis, self.current_pt[i])
-            
-        else:
-            self.height_ratio = np.ones(self.n_rows)
-            self.plot_fig, self.plot_ax = plt.subplots(self.n_rows, 1,
-                                                    gridspec_kw={'height_ratios': self.height_ratio})
-            
-            for i in range(self.n_rows):
-                line, = self.plot_ax[i].plot(self.time_axis, self.current_pt[i])
-                self.plot_line.append(line)
-                self.plot_ax[i].set_ylim([0, 1])
-                self.plot_ax[i].set_ylabel(f"MU {self.checked_MUs[i]}", fontsize=6)
-                self.plot_ax[i].tick_params(axis='x', labelsize=6)
-                self.plot_ax[i].tick_params(axis='y', labelsize=6)
-            # plt.show(block=False)
-            plt.subplots_adjust(left=0.05, right=1, top=0.99, bottom=0.02, 
-                                hspace=0.2, wspace=0)
-            
-            self.plotWidget = FigureCanvasQTAgg(self.plot_fig)
-            self.lay.setContentsMargins(0, 0, 0, 0)      
-            self.lay.addWidget(self.plotWidget)
+        self.line_handler = [None for i in range(self.n_rows)]
+        
+        self.plotWidget = pg.GraphicsLayoutWidget()
+        self.lay.addWidget(self.plotWidget)
+        for i in range(self.n_rows):
+            self.plot_handler = self.plotWidget.addPlot()
+            if i < self.n_rows - 1:
+                self.plot_handler.hideAxis('bottom')
+            self.plot_handler.hideAxis('left')
+            # self.plot_handler.setYRange(0, 1)
+            self.plot_handler.setLabel('left', f"{self.checked_MUs[i]}")
+            self.plotWidget.nextRow()
+            self.line_handler[i] = self.plot_handler.plot(pen=pg.mkPen(i))
+            self.line_handler[i].setData(self.time_axis, self.current_pt[i])
+        
    
     #############################################################################################################################
     ### Using simulated data  ###################################################################################################
@@ -757,7 +701,7 @@ class Window_decmod(QMainWindow):   # Decomposition Module window
                                                         a=self.bpf_den)
                 else:
                     filtered_data = self.current_batch
-                self.MUPulses, self.n_updates = rt_decomp_live_cy(data = filtered_data, B_realtime = self.B_rt_selected, batch_size = self.batch_size, 
+                self.MUPulses, self.n_updates = rt_decomp_live(data = filtered_data, B_realtime = self.B_rt_selected, batch_size = self.batch_size, 
                                                                n_updates = self.n_updates, prev_timediff = self.prev_timediff, time_diff = self.time_diff, 
                                                                prev_MUPulses = self.MUPulses, 
                                                                mean_tm = self.mean_tmod, discard = self.discard_ch, R = self.ext_factor, 
@@ -788,8 +732,8 @@ class Window_decmod(QMainWindow):   # Decomposition Module window
                     filtered_data = self.current_batch
                 (self.MUPulses, 
                 self.line_handler, 
-                self.n_updates, 
-                self.current_pt) = rt_decomp_plotpg_cy(data = filtered_data, B_realtime = self.B_rt_selected, 
+                self.n_updates,         
+                self.current_pt) = rt_decomp_plotpg(data = filtered_data, B_realtime = self.B_rt_selected, 
                                                 batch_size = self.batch_size, n_updates = self.n_updates, 
                                                 prev_timediff = self.prev_timediff, time_diff = self.time_diff, max_nsamples = self.max_nsamples, 
                                                 current_pt = self.current_pt,
@@ -800,52 +744,12 @@ class Window_decmod(QMainWindow):   # Decomposition Module window
                                                 classify_mu = self.use_sil, thd_sil = self.sil_threshold, 
                                                 use_pps = self.use_pps, thd_pps = self.pps_threshold, 
                                                 sc_tm = self.sc_tmod, nc_tm = self.nc_tmod, fs = self.fs)
+        
         else:
             self.stop_clicked()
         return
     
 
-    def update_plots_sim_plt(self) -> None:
-        self.prev_timediff = self.time_diff
-        self.time_diff = time.time() - self.start_time_plot
-        self.pullEMG_sim()
-        print(self.time_diff)
-        # if self.is_recording_sim == True:
-        if self.is_recording == True:
-            if (self.time_diff >= self.batch_size):
-                (self.MUPulses, 
-                self.plot_line, 
-                self.plot_ax, 
-                self.n_updates, 
-                self.current_pt) = sim_decomp_plot(data = self.current_batch, B_realtime = self.B_rt_selected, 
-                                                batch_size = self.batch_size, n_updates = self.n_updates, 
-                                                prev_timediff = self.prev_timediff, overlap = self.overlap, 
-                                                current_pt = self.current_pt, 
-                                                plot_ax = self.plot_ax, plot_line = self.plot_line, 
-                                                prev_MUPulses = self.MUPulses, 
-                                                mean_tm = self.mean_tmod, discard = self.discard_ch, R = self.ext_factor, 
-                                                bandpass = self.use_bpf, 
-                                                lowcut = self.lowcut_freq, highcut = self.highcut_freq, order = self.order, 
-                                                l = self.min_distance, 
-                                                classify_mu = self.use_sil, thd_sil = self.sil_threshold, 
-                                                use_pps = self.use_pps, thd_pps = self.pps_threshold, 
-                                                sc_tm = self.sc_tmod, nc_tm = self.nc_tmod, fs = self.fs)
-                self.plotWidget.update()
-                self.plotWidget.flush_events()
-        else:
-            self.stop_clicked()
-        return
-    
-    
-
-    
-    """
-    def record_emgsim(self):
-        emgsim_pulling = Worker(self.pullEMG_sim)
-        emgsim_pulling.signals.result.connect(emgsim_pulling.print_output)
-        emgsim_pulling.signals.progress.connect(emgsim_pulling.progress_fn)
-        self.threadpool.start(self.pullEMG_sim)
-    """    
     def pullEMG_sim(self):
         # while self.is_recording_sim:
         if ((self.prev_timediff - self.update_interval) > (self.end_time - self.start_time)):
@@ -886,15 +790,7 @@ class Window_decmod(QMainWindow):   # Decomposition Module window
                                                                          int(current_batch_size - 
                                                                              int((self.time_diff - self.prev_timediff)*self.fs)):]])
                 
-                # self.rec_data = np.column_stack([self.rec_data, rec_data[:,int(self.overlap*self.fs):]])
-                # time.sleep(self.update_interval)
-                # print(f"n={self.n_updates}")
-                # print(current_batch_size)
-                # print(int((self.time_diff - self.prev_timediff)*self.fs))
-                # print(self.rec_data.shape)
-            # self.n_count = self.rec_data.shape[1] - int(self.overlap * self.fs)
-            # print(f"n_count:{self.n_count}")
-            # print(time.time() - self.start_time_plot)
+                
 
     def record_force(self):
         force_pulling = Worker(self.pullforce_live)
@@ -936,7 +832,7 @@ class Window_decmod(QMainWindow):   # Decomposition Module window
                                                         a=self.bpf_den)
             else:
                 filtered_data = self.current_batch
-            self.MUPulses, self.n_updates = rt_decomp_live_cy(data = filtered_data, B_realtime = self.B_rt_selected, batch_size = self.batch_size, 
+            self.MUPulses, self.n_updates = rt_decomp_live(data = filtered_data, B_realtime = self.B_rt_selected, batch_size = self.batch_size, 
                                                             n_updates = self.n_updates, prev_timediff = self.prev_timediff, time_diff = self.time_diff, 
                                                             prev_MUPulses = self.MUPulses, 
                                                             mean_tm = self.mean_tmod, discard = self.discard_ch, R = self.ext_factor, 
@@ -968,7 +864,7 @@ class Window_decmod(QMainWindow):   # Decomposition Module window
             (self.MUPulses, 
             self.line_handler, 
             self.n_updates, 
-            self.current_pt) = rt_decomp_plotpg_cy(data = filtered_data, B_realtime = self.B_rt_selected, 
+            self.current_pt) = rt_decomp_plotpg(data = filtered_data, B_realtime = self.B_rt_selected, 
                                                 batch_size = self.batch_size, n_updates = self.n_updates, 
                                                 prev_timediff = self.prev_timediff, time_diff = self.time_diff, max_nsamples = self.max_nsamples,
                                                 current_pt = self.current_pt, 
@@ -1022,10 +918,7 @@ class Window_decmod(QMainWindow):   # Decomposition Module window
         if self.use_plots:
             if self.use_simulated_data:
                 # self.is_recording_sim = False
-                if self.plotter == "pg":
-                    self.visTimer.timeout.disconnect(self.update_plots_sim_pg)
-                else:
-                    self.visTimer.timeout.disconnect(self.update_plots_sim_plt)
+                self.visTimer.timeout.disconnect(self.update_plots_sim_pg)
             else:
                 self.visTimer.timeout.disconnect(self.update_plots_live)
                 # self.is_recording_live = False
@@ -1045,13 +938,6 @@ class Window_decmod(QMainWindow):   # Decomposition Module window
         if self.use_arduino:
             self.serial_arduino.close()
         
-    """
-    def save_parameters(self):
-        # TODO combine with save_results
-        self.filename_param =  "dec_data/" + self.save_foldername + "/" + self.save_filename_param
-        savemat(self.filename_param, self.parameters)
-        print(f"Parameters saved in: {self.filename_param}")
-    """
 
     def save_results(self):
         self.filename_pt = "dec_data/" + self.save_foldername + "/" + self.save_filename_pt
@@ -1069,6 +955,7 @@ class Window_decmod(QMainWindow):   # Decomposition Module window
         if self.use_arduino:
             results["ref_force"] = np.array(self.ref_force)
         
+        # Adding parameter values
         for key in self.parameters.keys():
             results[key] = self.parameters[key]
         savemat(self.filename_pt, results)

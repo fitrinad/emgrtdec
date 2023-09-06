@@ -2,12 +2,11 @@ from PyQt5.QtWidgets import (QMainWindow, QFileDialog, QDialog, QDialogButtonBox
                              QLabel, QMessageBox, QApplication)
 from PyQt5 import QtCore, uic
 from scipy.io import (loadmat, savemat)
-import pickle
 import numpy as np
 import pandas as pd
 import sys
 
-from functions.preprocessing import (crop_data, bad_channels, notch_filter) 
+from functions.preprocessing import (crop_data, bad_channels) 
 from functions.visualization import visualize_pt_tmod
 from tmod import *
 from decmod_window import Window_decmod
@@ -196,22 +195,13 @@ class Window_tmod(QMainWindow):     # Training Module window
                                      fs=self.fs)
         elif self.emg_file.endswith(".csv"):
             if self.radioButton_GUI_Muovi_csv.isChecked():
-            # TODO add load .csv for files from OTB, combine with radioButtons
             # EMG file recorded with GUI_Muovi
-                """
-                data_tmp = np.loadtxt(self.emg_file, delimiter=',')
-                # if self.sel_array is not None:
-                data_tmp = (data_tmp[1:,  (self.grid_size[0]*self.grid_size[1]) * (self.sel_array-1) :
-                                            (self.grid_size[0]*self.grid_size[1]) * self.sel_array].T  )
-                """
                 data_tmp = np.array( pd.read_csv(self.emg_file) )
                 data_tmp = (data_tmp[:,  (self.grid_size[0]*self.grid_size[1]) * (self.sel_array-1) :
                                         (self.grid_size[0]*self.grid_size[1]) * self.sel_array].T  )
-                # else:
-                #     data_tmp = data_tmp[1:,  :].T
             
             if self.radioButton_OTB_csv.isChecked():
-            # TODO: Read .csv EMG file exported from OTB
+            # EMG file exported from OTB
                 data_tmp = np.array( pd.read_csv(self.emg_file, delimiter=";") )
                 data_tmp = data_tmp[1:, (self.grid_size[0]*self.grid_size[1]) * (self.sel_array-1) :
                                         (self.grid_size[0]*self.grid_size[1]) * self.sel_array].T
@@ -412,28 +402,13 @@ class Window_tmod(QMainWindow):     # Training Module window
         self.show_results()
 
     def save_results(self):
-        # TODO save as .mat instead of .obj, include parameters
         for key in self.parameters.keys():
             self.decomp_tmod[key] = self.parameters[key]
 
         saveresults_path = "./tmod_data/" + self.save_filename + ".mat"
         savemat(saveresults_path, self.decomp_tmod)
-        """
-        saveresults_path = "./tmod_data/" + self.save_filename + ".obj"
-        decomp_sample_pkl = open(saveresults_path, 'wb') 
-        pickle.dump(self.decomp_tmod, decomp_sample_pkl)
-        decomp_sample_pkl.close()
-        """
         print(f"Results saved in: {saveresults_path}")
         
-    """
-    def save_parameters(self):
-        # TODO merge with save_results
-        saveparams_path = "./tmod_data/" + self.save_filename + "_param" + ".mat"
-        savemat(saveparams_path, self.parameters)
-        # np.savetxt(saveparams_path, self.parameters, delimiter=",", fmt="%s")
-        print(f"Parameters saved in: {saveparams_path}")
-    """
     
     def show_results(self):
         # Showing parameters and number of extracted MUs
