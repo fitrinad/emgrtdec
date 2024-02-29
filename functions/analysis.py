@@ -6,417 +6,6 @@ import networkx as nx
 from emgdecompy.preprocessing import flatten_signal
 
 
-def import_n_mu(n_mu={}, name="P01", 
-                n_training=1, n_objects=4,
-                electrode_placements=["ext", "int"],
-                mvc_levels=["10", "30"],
-                gestures=["close", "pinch", "tripod"]):
-    """
-    Imports number of MUs extracted from .mat files containing decomposition results 
-    """
-    data_types = []
-    thd_similarity = 0.9
-    
-    for mvc_level in mvc_levels:
-        data_types.append(mvc_level+"_train")
-    for mvc_level in mvc_levels:
-        data_types.append(mvc_level+"_mov")
-    
-    muscle_ext = ["flexor", "extensor"]
-    muscle_int = ["fdi", "second_di"]
-    for electrode_placement in electrode_placements:
-        for data_type in data_types:
-            key_name = electrode_placement + "_" + data_type
-            n_mu[key_name] = {}
-            for gesture in gestures:
-                if (data_type == "10_train") or (data_type == "30_train"):
-                    if gesture != "rest_calibration":
-                        for i in range(1, n_training+1):
-                            training_gesture = gesture + str(i)
-                            n_mu[key_name][training_gesture] = {}
-                            if electrode_placement == "ext":
-                                file_path = ("../../data/" + name + "/offline/" + 
-                                            name + "_" + key_name + "_" + 
-                                            training_gesture + "_" + muscle_ext[0])
-                                unique_mus = []
-                                MUPulses = loadmat(file_path)["MUPulses"].squeeze()
-                                if MUPulses.size != 0:
-                                    if np.size(MUPulses[0]) > 1:
-                                        unique_mus = unique_mu(ind_pt = loadmat(file_path)["MUPulses"].squeeze(), 
-                                                            data = loadmat(file_path)["SIG"].squeeze(), 
-                                                            min_distance = 30, 
-                                                            thr=thd_similarity)
-                                    else:
-                                        unique_mus = [0]
-                                n_mu[key_name][training_gesture][muscle_ext[0]] = np.size(unique_mus)
-                                
-                                file_path = ("../../data/" + name + "/offline/" + 
-                                            name + "_" + key_name + "_" + 
-                                            training_gesture + "_" + muscle_ext[1])
-                                unique_mus = []
-                                MUPulses = loadmat(file_path)["MUPulses"].squeeze()
-                                if MUPulses.size != 0:
-                                    if np.size(MUPulses[0]) > 1:
-                                        unique_mus = unique_mu(ind_pt = loadmat(file_path)["MUPulses"].squeeze(), 
-                                                            data = loadmat(file_path)["SIG"].squeeze(), 
-                                                            min_distance = 30, 
-                                                            thr=thd_similarity)
-                                    else:
-                                        unique_mus = [0]
-                                n_mu[key_name][training_gesture][muscle_ext[1]] = np.size(unique_mus)
-                            elif electrode_placement == "int":
-                                file_path = ("../../data/" + name + "/offline/" + 
-                                            name + "_" + key_name + "_" + 
-                                            training_gesture + "_" + muscle_int[0])
-                                unique_mus = []
-                                MUPulses = loadmat(file_path)["MUPulses"].squeeze()
-                                if MUPulses.size != 0:
-                                    if np.size(MUPulses[0]) > 1:
-                                        unique_mus = unique_mu(ind_pt = loadmat(file_path)["MUPulses"].squeeze(), 
-                                                            data = loadmat(file_path)["SIG"].squeeze(), 
-                                                            min_distance = 30, 
-                                                            thr=thd_similarity)
-                                    else:
-                                        unique_mus = [0]
-                                n_mu[key_name][training_gesture][muscle_int[0]] = np.size(unique_mus)
-                                
-                                file_path = ("../../data/" + name + "/offline/" + 
-                                            name + "_" + key_name + "_" + 
-                                            training_gesture + "_" + muscle_int[1])
-                                unique_mus = []
-                                MUPulses = loadmat(file_path)["MUPulses"].squeeze()
-                                if MUPulses.size != 0:
-                                    if np.size(MUPulses[0]) > 1:
-                                        unique_mus = unique_mu(ind_pt = loadmat(file_path)["MUPulses"].squeeze(), 
-                                                            data = loadmat(file_path)["SIG"].squeeze(), 
-                                                            min_distance = 30, 
-                                                            thr=thd_similarity)
-                                    else:
-                                        unique_mus = [0]
-                                n_mu[key_name][training_gesture][muscle_int[1]] = np.size(unique_mus)
-                if (data_type == "10_mov") or (data_type == "30_mov"):
-                    if gesture != "rest_calibration":
-                        for i in range(1, n_objects+1):
-                            movement_gesture = gesture + str(i)
-                            n_mu[key_name][movement_gesture] = {}
-                            if electrode_placement == "ext":
-                                file_path = ("../../data/" + name + "/offline/" + 
-                                            name + "_" + key_name + "_" + 
-                                            movement_gesture + "_" + muscle_ext[0])
-                                unique_mus = []
-                                MUPulses = loadmat(file_path)["MUPulses"].squeeze()
-                                if MUPulses.size != 0:
-                                    if np.size(MUPulses[0]) > 1:
-                                        unique_mus = unique_mu(ind_pt = loadmat(file_path)["MUPulses"].squeeze(), 
-                                                            data = loadmat(file_path)["SIG"].squeeze(), 
-                                                            min_distance = 30, 
-                                                            thr=thd_similarity)
-                                    else:
-                                        unique_mus = [0]
-                                n_mu[key_name][movement_gesture][muscle_ext[0]] = np.size(unique_mus)
-                                
-                                file_path = ("../../data/" + name + "/offline/" + 
-                                            name + "_" + key_name + "_" + 
-                                            movement_gesture + "_" + muscle_ext[1])
-                                unique_mus = []
-                                MUPulses = loadmat(file_path)["MUPulses"].squeeze()
-                                if MUPulses.size != 0:
-                                    if np.size(MUPulses[0]) > 1:
-                                        unique_mus = unique_mu(ind_pt = loadmat(file_path)["MUPulses"].squeeze(), 
-                                                            data = loadmat(file_path)["SIG"].squeeze(), 
-                                                            min_distance = 30, 
-                                                            thr=thd_similarity)
-                                    else:
-                                        unique_mus = [0]
-                                n_mu[key_name][movement_gesture][muscle_ext[1]] = np.size(unique_mus)
-                            elif electrode_placement == "int":
-                                file_path = ("../../data/" + name + "/offline/" + 
-                                            name + "_" + key_name + "_" + 
-                                            movement_gesture + "_" + muscle_int[0])
-                                unique_mus = []
-                                MUPulses = loadmat(file_path)["MUPulses"].squeeze()
-                                if MUPulses.size != 0:
-                                    if np.size(MUPulses[0]) > 1:
-                                        unique_mus = unique_mu(ind_pt = loadmat(file_path)["MUPulses"].squeeze(), 
-                                                            data = loadmat(file_path)["SIG"].squeeze(), 
-                                                            min_distance = 30, 
-                                                            thr=thd_similarity)
-                                    else:
-                                        unique_mus = [0]
-                                n_mu[key_name][movement_gesture][muscle_int[0]] = np.size(unique_mus)
-                                
-                                file_path = ("../../data/" + name + "/offline/" + 
-                                            name + "_" + key_name + "_" + 
-                                            movement_gesture + "_" + muscle_int[1])
-                                unique_mus = []
-                                MUPulses = loadmat(file_path)["MUPulses"].squeeze()
-                                if MUPulses.size != 0:
-                                    if np.size(MUPulses[0]) > 1:
-                                        unique_mus = unique_mu(ind_pt = loadmat(file_path)["MUPulses"].squeeze(), 
-                                                            data = loadmat(file_path)["SIG"].squeeze(), 
-                                                            min_distance = 30, 
-                                                            thr=thd_similarity)
-                                    else:
-                                        unique_mus = [0]
-                                n_mu[key_name][movement_gesture][muscle_int[1]] = np.size(unique_mus)
-    return n_mu
-
-
-def all_n_mu(n_mu, n_mu_all={}, 
-             names=["P01", "P07", "P08", "P09", "P10"],
-             n_training=1, n_objects=4,
-                electrode_placements=["ext", "int"],
-                mvc_levels=["10", "30"],
-                gestures=["close", "pinch", "tripod"]):
-    data_types = []
-    for mvc_level in mvc_levels:
-        data_types.append(str(mvc_level)+"_train")
-    for mvc_level in mvc_levels:
-        data_types.append(str(mvc_level)+"_mov")
-
-    muscle_ext = ["flexor", "extensor"]
-    muscle_int = ["fdi", "second_di"]
-    for electrode_placement in electrode_placements:
-        for data_type in data_types:
-            key_name = electrode_placement + "_" + data_type
-            n_mu_all[key_name] = {}
-            for gesture in gestures:
-                if (data_type == "10_train") or (data_type == "30_train"):
-                    if gesture != "rest_calibration":
-                        for i in range(1, n_training+1):
-                            training_gesture = gesture + str(i)
-                            n_mu_all[key_name][training_gesture] = {}
-                            if electrode_placement == "ext":
-                                n_mu_data = []
-                                for name in names:
-                                    n_mu_data.append(n_mu[name][key_name][training_gesture][muscle_ext[0]])  
-                                n_mu_all[key_name][training_gesture][muscle_ext[0]] = n_mu_data
-                                n_mu_data = []
-                                for name in names:
-                                    n_mu_data.append(n_mu[name][key_name][training_gesture][muscle_ext[1]])  
-                                n_mu_all[key_name][training_gesture][muscle_ext[1]] = n_mu_data
-                            elif electrode_placement == "int":
-                                n_mu_data = []
-                                for name in names:
-                                    n_mu_data.append(n_mu[name][key_name][training_gesture][muscle_int[0]])  
-                                n_mu_all[key_name][training_gesture][muscle_int[0]] = n_mu_data
-                                n_mu_data = []
-                                for name in names:
-                                    n_mu_data.append(n_mu[name][key_name][training_gesture][muscle_int[1]])  
-                                n_mu_all[key_name][training_gesture][muscle_int[1]] = n_mu_data
-                if (data_type == "10_mov") or (data_type == "30_mov"):
-                    if gesture != "rest_calibration":
-                        for i in range(1, n_objects+1):
-                            movement_gesture = gesture + str(i)
-                            n_mu_all[key_name][movement_gesture] = {}
-                            if electrode_placement == "ext":
-                                n_mu_data = []
-                                for name in names:
-                                    n_mu_data.append(n_mu[name][key_name][movement_gesture][muscle_ext[0]])
-                                n_mu_all[key_name][movement_gesture][muscle_ext[0]] = n_mu_data
-                                n_mu_data = []
-                                for name in names:
-                                    n_mu_data.append(n_mu[name][key_name][movement_gesture][muscle_ext[1]])
-                                n_mu_all[key_name][movement_gesture][muscle_ext[1]] = n_mu_data
-                            elif electrode_placement == "int":
-                                n_mu_data = []
-                                for name in names:
-                                    n_mu_data.append(n_mu[name][key_name][movement_gesture][muscle_int[0]])
-                                n_mu_all[key_name][movement_gesture][muscle_int[0]] = n_mu_data
-                                n_mu_data = []
-                                for name in names:
-                                    n_mu_data.append(n_mu[name][key_name][movement_gesture][muscle_int[1]])
-                                n_mu_all[key_name][movement_gesture][muscle_int[1]] = n_mu_data
-    return n_mu_all
-
-
-def import_firing_rate(firing_rate={}, name="P01", 
-                       n_training=1, n_objects=4,
-                       electrode_placements=["ext", "int"],
-                       mvc_levels=["10", "30"],
-                       gestures=["close", "pinch", "tripod"]):
-    data_types = []
-    for mvc_level in mvc_levels:
-        data_types.append(mvc_level+"_train")
-    for mvc_level in mvc_levels:
-        data_types.append(mvc_level+"_mov")
-    
-    muscle_ext = ["flexor", "extensor"]
-    muscle_int = ["fdi", "second_di"]
-    for electrode_placement in electrode_placements:
-        for data_type in data_types:
-            key_name = electrode_placement + "_" + data_type
-            firing_rate[key_name] = {}
-            for gesture in gestures:
-                if (data_type == "10_mov") or (data_type == "30_mov"):
-                    if gesture != "rest_calibration":
-                        for i in range(1, n_objects+1):
-                            movement_gesture = gesture + str(i)
-                            firing_rate[key_name][movement_gesture] = {}
-                            if electrode_placement == "ext":
-                                file_path = ("../../data/" + name + "/sim_rt/" + 
-                                            name + "_" + key_name + "_" + 
-                                            movement_gesture + "_" + muscle_ext[0])
-                                firing_rate[key_name][movement_gesture][muscle_ext[0]] = list(loadmat(file_path)["mean_firing_rate"].flatten())
-                                file_path = ("../../data/" + name + "/sim_rt/" + 
-                                            name + "_" + key_name + "_" + 
-                                            movement_gesture + "_" + muscle_ext[1])
-                                firing_rate[key_name][movement_gesture][muscle_ext[1]] = list(loadmat(file_path)["mean_firing_rate"].flatten())
-                            elif electrode_placement == "int":
-                                file_path = ("../../data/" + name + "/sim_rt/" + 
-                                            name + "_" + key_name + "_" + 
-                                            movement_gesture + "_" + muscle_int[0])
-                                firing_rate[key_name][movement_gesture][muscle_int[0]] = list(loadmat(file_path)["mean_firing_rate"].flatten())
-                                file_path = ("../../data/" + name + "/sim_rt/" + 
-                                            name + "_" + key_name + "_" + 
-                                            movement_gesture + "_" + muscle_int[1])
-                                firing_rate[key_name][movement_gesture][muscle_int[1]] = list(loadmat(file_path)["mean_firing_rate"].flatten())
-    return firing_rate
-
-
-def all_firing_rate(firing_rate, firing_rate_all={}, 
-                    names=["P01", "P07", "P08", "P09", "P10"],
-                    n_training=1, n_objects=4,
-                    electrode_placements=["ext", "int"],
-                    mvc_levels=["10", "30"],
-                    gestures=["close", "pinch", "tripod"]):
-    data_types = []
-    for mvc_level in mvc_levels:
-        data_types.append(str(mvc_level)+"_train")
-    for mvc_level in mvc_levels:
-        data_types.append(str(mvc_level)+"_mov")
-
-    muscle_ext = ["flexor", "extensor"]
-    muscle_int = ["fdi", "second_di"]
-    for electrode_placement in electrode_placements:
-        for data_type in data_types:
-            key_name = electrode_placement + "_" + data_type
-            firing_rate_all[key_name] = {}
-            for gesture in gestures:
-                if (data_type == "10_mov") or (data_type == "30_mov"):
-                    if gesture != "rest_calibration":
-                        for i in range(1, n_objects+1):
-                            movement_gesture = gesture + str(i)
-                            firing_rate_all[key_name][movement_gesture] = {}
-                            if electrode_placement == "ext":
-                                firing_rate_data = []
-                                for name in names:
-                                    firing_rate_data.extend(list(firing_rate[name][key_name][movement_gesture][muscle_ext[0]]))
-                                firing_rate_all[key_name][movement_gesture][muscle_ext[0]] = firing_rate_data
-                                firing_rate_data = []
-                                for name in names:
-                                    firing_rate_data.extend(list(firing_rate[name][key_name][movement_gesture][muscle_ext[1]]))
-                                firing_rate_all[key_name][movement_gesture][muscle_ext[1]] = firing_rate_data
-                            elif electrode_placement == "int":
-                                firing_rate_data = []
-                                for name in names:
-                                    firing_rate_data.extend(list(firing_rate[name][key_name][movement_gesture][muscle_int[0]]))
-                                firing_rate_all[key_name][movement_gesture][muscle_int[0]] = firing_rate_data
-                                firing_rate_data = []
-                                for name in names:
-                                    firing_rate_data.extend(list(firing_rate[name][key_name][movement_gesture][muscle_int[1]]))
-                                firing_rate_all[key_name][movement_gesture][muscle_int[1]] = firing_rate_data
-    return firing_rate_all
-
-
-def import_offline_decomp(offline_decomp={}, name="P01", 
-                          n_training=1, n_objects=4,
-                          electrode_placements=["ext", "int"],
-                          mvc_levels=["10", "30"],
-                          gestures=["close", "pinch", "tripod"],
-                          imported_parameters=["MUPulses", "B", "ext_factor", "discard_ch"
-                                               "l", "SIG", "unique_mu"]):
-    data_types = []
-    for mvc_level in mvc_levels:
-        data_types.append(mvc_level+"_train")
-    for mvc_level in mvc_levels:
-        data_types.append(mvc_level+"_mov")
-    
-    muscle_ext = ["flexor", "extensor"]
-    muscle_int = ["fdi", "second_di"]
-    for electrode_placement in electrode_placements:
-        for data_type in data_types:
-            key_name = electrode_placement + "_" + data_type
-            offline_decomp[key_name] = {}
-            for gesture in gestures:
-                if (data_type == "10_train") or (data_type == "30_train"):
-                    if gesture != "rest_calibration":
-                        for i in range(1, n_training+1):
-                            training_gesture = gesture + str(i)
-                            offline_decomp[key_name][training_gesture] = {}
-                            if electrode_placement == "ext":
-                                offline_decomp[key_name][training_gesture][muscle_ext[0]] = {}
-                                offline_decomp[key_name][training_gesture][muscle_ext[1]] = {}
-                                
-                                file_path = ("../../data/" + name + "/offline/" + 
-                                            name + "_" + key_name + "_" + 
-                                            training_gesture + "_" + muscle_ext[0])
-                                for imported_parameter in imported_parameters:
-                                    offline_decomp[key_name][training_gesture][muscle_ext[0]][imported_parameter] = loadmat(file_path)[imported_parameter]
-                                
-                                file_path = ("../../data/" + name + "/offline/" + 
-                                            name + "_" + key_name + "_" + 
-                                            training_gesture + "_" + muscle_ext[1])
-                                
-                                for imported_parameter in imported_parameters:
-                                    offline_decomp[key_name][training_gesture][muscle_ext[1]][imported_parameter] = loadmat(file_path)[imported_parameter]
-
-                            elif electrode_placement == "int":
-                                offline_decomp[key_name][training_gesture][muscle_int[0]] = {}
-                                offline_decomp[key_name][training_gesture][muscle_int[1]] = {}
-
-                                file_path = ("../../data/" + name + "/offline/" + 
-                                            name + "_" + key_name + "_" + 
-                                            training_gesture + "_" + muscle_int[0])
-                                for imported_parameter in imported_parameters:
-                                    offline_decomp[key_name][training_gesture][muscle_int[0]][imported_parameter] = loadmat(file_path)[imported_parameter]
-                                
-                                file_path = ("../../data/" + name + "/offline/" + 
-                                            name + "_" + key_name + "_" + 
-                                            training_gesture + "_" + muscle_int[1])
-                                for imported_parameter in imported_parameters:
-                                    offline_decomp[key_name][training_gesture][muscle_int[1]][imported_parameter] = loadmat(file_path)[imported_parameter]
-                                
-                if (data_type == "10_mov") or (data_type == "30_mov"):
-                    if gesture != "rest_calibration":
-                        for i in range(1, n_objects+1):
-                            movement_gesture = gesture + str(i)
-                            offline_decomp[key_name][movement_gesture] = {}
-                            if electrode_placement == "ext":
-                                offline_decomp[key_name][movement_gesture][muscle_ext[0]] = {}
-                                offline_decomp[key_name][movement_gesture][muscle_ext[1]] = {}
-                                
-                                file_path = ("../../data/" + name + "/offline/" + 
-                                            name + "_" + key_name + "_" + 
-                                            movement_gesture + "_" + muscle_ext[0])
-                                for imported_parameter in imported_parameters:
-                                    offline_decomp[key_name][movement_gesture][muscle_ext[0]][imported_parameter] = loadmat(file_path)[imported_parameter]
-                                
-                                file_path = ("../../data/" + name + "/offline/" + 
-                                            name + "_" + key_name + "_" + 
-                                            movement_gesture + "_" + muscle_ext[1])
-                                for imported_parameter in imported_parameters:
-                                    offline_decomp[key_name][movement_gesture][muscle_ext[1]][imported_parameter] = loadmat(file_path)[imported_parameter]
-
-                            elif electrode_placement == "int":
-                                offline_decomp[key_name][movement_gesture][muscle_int[0]] = {}
-                                offline_decomp[key_name][movement_gesture][muscle_int[1]] = {}
-
-                                file_path = ("../../data/" + name + "/offline/" + 
-                                            name + "_" + key_name + "_" + 
-                                            movement_gesture + "_" + muscle_int[0])
-                                for imported_parameter in imported_parameters:
-                                    offline_decomp[key_name][movement_gesture][muscle_int[0]][imported_parameter] = loadmat(file_path)[imported_parameter]
-                                
-                                file_path = ("../../data/" + name + "/offline/" + 
-                                            name + "_" + key_name + "_" + 
-                                            movement_gesture + "_" + muscle_int[1])
-                                for imported_parameter in imported_parameters:
-                                    offline_decomp[key_name][movement_gesture][muscle_int[1]][imported_parameter] = loadmat(file_path)[imported_parameter]
-                                
-    return offline_decomp
-
-
 def calc_mean_cc(muscle_1, muscle_2, 
                       unique_mu_1, unique_mu_2,
                       has_one_mu_1, has_one_mu_2,
@@ -1347,3 +936,414 @@ def compare_firing_rate2(ind_pt1, ind_pt2, data,
     plt.show()
     return firing_rates_1, firing_rates_2, fr_similarity
 
+
+
+def import_n_mu(n_mu={}, name="P01", 
+                n_training=1, n_objects=4,
+                electrode_placements=["ext", "int"],
+                mvc_levels=["10", "30"],
+                gestures=["close", "pinch", "tripod"]):
+    """
+    Imports number of MUs extracted from .mat files containing decomposition results 
+    """
+    data_types = []
+    thd_similarity = 0.9
+    
+    for mvc_level in mvc_levels:
+        data_types.append(mvc_level+"_train")
+    for mvc_level in mvc_levels:
+        data_types.append(mvc_level+"_mov")
+    
+    muscle_ext = ["flexor", "extensor"]
+    muscle_int = ["fdi", "second_di"]
+    for electrode_placement in electrode_placements:
+        for data_type in data_types:
+            key_name = electrode_placement + "_" + data_type
+            n_mu[key_name] = {}
+            for gesture in gestures:
+                if (data_type == "10_train") or (data_type == "30_train"):
+                    if gesture != "rest_calibration":
+                        for i in range(1, n_training+1):
+                            training_gesture = gesture + str(i)
+                            n_mu[key_name][training_gesture] = {}
+                            if electrode_placement == "ext":
+                                file_path = ("../../data/" + name + "/offline/" + 
+                                            name + "_" + key_name + "_" + 
+                                            training_gesture + "_" + muscle_ext[0])
+                                unique_mus = []
+                                MUPulses = loadmat(file_path)["MUPulses"].squeeze()
+                                if MUPulses.size != 0:
+                                    if np.size(MUPulses[0]) > 1:
+                                        unique_mus = unique_mu(ind_pt = loadmat(file_path)["MUPulses"].squeeze(), 
+                                                            data = loadmat(file_path)["SIG"].squeeze(), 
+                                                            min_distance = 30, 
+                                                            thr=thd_similarity)
+                                    else:
+                                        unique_mus = [0]
+                                n_mu[key_name][training_gesture][muscle_ext[0]] = np.size(unique_mus)
+                                
+                                file_path = ("../../data/" + name + "/offline/" + 
+                                            name + "_" + key_name + "_" + 
+                                            training_gesture + "_" + muscle_ext[1])
+                                unique_mus = []
+                                MUPulses = loadmat(file_path)["MUPulses"].squeeze()
+                                if MUPulses.size != 0:
+                                    if np.size(MUPulses[0]) > 1:
+                                        unique_mus = unique_mu(ind_pt = loadmat(file_path)["MUPulses"].squeeze(), 
+                                                            data = loadmat(file_path)["SIG"].squeeze(), 
+                                                            min_distance = 30, 
+                                                            thr=thd_similarity)
+                                    else:
+                                        unique_mus = [0]
+                                n_mu[key_name][training_gesture][muscle_ext[1]] = np.size(unique_mus)
+                            elif electrode_placement == "int":
+                                file_path = ("../../data/" + name + "/offline/" + 
+                                            name + "_" + key_name + "_" + 
+                                            training_gesture + "_" + muscle_int[0])
+                                unique_mus = []
+                                MUPulses = loadmat(file_path)["MUPulses"].squeeze()
+                                if MUPulses.size != 0:
+                                    if np.size(MUPulses[0]) > 1:
+                                        unique_mus = unique_mu(ind_pt = loadmat(file_path)["MUPulses"].squeeze(), 
+                                                            data = loadmat(file_path)["SIG"].squeeze(), 
+                                                            min_distance = 30, 
+                                                            thr=thd_similarity)
+                                    else:
+                                        unique_mus = [0]
+                                n_mu[key_name][training_gesture][muscle_int[0]] = np.size(unique_mus)
+                                
+                                file_path = ("../../data/" + name + "/offline/" + 
+                                            name + "_" + key_name + "_" + 
+                                            training_gesture + "_" + muscle_int[1])
+                                unique_mus = []
+                                MUPulses = loadmat(file_path)["MUPulses"].squeeze()
+                                if MUPulses.size != 0:
+                                    if np.size(MUPulses[0]) > 1:
+                                        unique_mus = unique_mu(ind_pt = loadmat(file_path)["MUPulses"].squeeze(), 
+                                                            data = loadmat(file_path)["SIG"].squeeze(), 
+                                                            min_distance = 30, 
+                                                            thr=thd_similarity)
+                                    else:
+                                        unique_mus = [0]
+                                n_mu[key_name][training_gesture][muscle_int[1]] = np.size(unique_mus)
+                if (data_type == "10_mov") or (data_type == "30_mov"):
+                    if gesture != "rest_calibration":
+                        for i in range(1, n_objects+1):
+                            movement_gesture = gesture + str(i)
+                            n_mu[key_name][movement_gesture] = {}
+                            if electrode_placement == "ext":
+                                file_path = ("../../data/" + name + "/offline/" + 
+                                            name + "_" + key_name + "_" + 
+                                            movement_gesture + "_" + muscle_ext[0])
+                                unique_mus = []
+                                MUPulses = loadmat(file_path)["MUPulses"].squeeze()
+                                if MUPulses.size != 0:
+                                    if np.size(MUPulses[0]) > 1:
+                                        unique_mus = unique_mu(ind_pt = loadmat(file_path)["MUPulses"].squeeze(), 
+                                                            data = loadmat(file_path)["SIG"].squeeze(), 
+                                                            min_distance = 30, 
+                                                            thr=thd_similarity)
+                                    else:
+                                        unique_mus = [0]
+                                n_mu[key_name][movement_gesture][muscle_ext[0]] = np.size(unique_mus)
+                                
+                                file_path = ("../../data/" + name + "/offline/" + 
+                                            name + "_" + key_name + "_" + 
+                                            movement_gesture + "_" + muscle_ext[1])
+                                unique_mus = []
+                                MUPulses = loadmat(file_path)["MUPulses"].squeeze()
+                                if MUPulses.size != 0:
+                                    if np.size(MUPulses[0]) > 1:
+                                        unique_mus = unique_mu(ind_pt = loadmat(file_path)["MUPulses"].squeeze(), 
+                                                            data = loadmat(file_path)["SIG"].squeeze(), 
+                                                            min_distance = 30, 
+                                                            thr=thd_similarity)
+                                    else:
+                                        unique_mus = [0]
+                                n_mu[key_name][movement_gesture][muscle_ext[1]] = np.size(unique_mus)
+                            elif electrode_placement == "int":
+                                file_path = ("../../data/" + name + "/offline/" + 
+                                            name + "_" + key_name + "_" + 
+                                            movement_gesture + "_" + muscle_int[0])
+                                unique_mus = []
+                                MUPulses = loadmat(file_path)["MUPulses"].squeeze()
+                                if MUPulses.size != 0:
+                                    if np.size(MUPulses[0]) > 1:
+                                        unique_mus = unique_mu(ind_pt = loadmat(file_path)["MUPulses"].squeeze(), 
+                                                            data = loadmat(file_path)["SIG"].squeeze(), 
+                                                            min_distance = 30, 
+                                                            thr=thd_similarity)
+                                    else:
+                                        unique_mus = [0]
+                                n_mu[key_name][movement_gesture][muscle_int[0]] = np.size(unique_mus)
+                                
+                                file_path = ("../../data/" + name + "/offline/" + 
+                                            name + "_" + key_name + "_" + 
+                                            movement_gesture + "_" + muscle_int[1])
+                                unique_mus = []
+                                MUPulses = loadmat(file_path)["MUPulses"].squeeze()
+                                if MUPulses.size != 0:
+                                    if np.size(MUPulses[0]) > 1:
+                                        unique_mus = unique_mu(ind_pt = loadmat(file_path)["MUPulses"].squeeze(), 
+                                                            data = loadmat(file_path)["SIG"].squeeze(), 
+                                                            min_distance = 30, 
+                                                            thr=thd_similarity)
+                                    else:
+                                        unique_mus = [0]
+                                n_mu[key_name][movement_gesture][muscle_int[1]] = np.size(unique_mus)
+    return n_mu
+
+
+def all_n_mu(n_mu, n_mu_all={}, 
+             names=["P01", "P07", "P08", "P09", "P10"],
+             n_training=1, n_objects=4,
+                electrode_placements=["ext", "int"],
+                mvc_levels=["10", "30"],
+                gestures=["close", "pinch", "tripod"]):
+    data_types = []
+    for mvc_level in mvc_levels:
+        data_types.append(str(mvc_level)+"_train")
+    for mvc_level in mvc_levels:
+        data_types.append(str(mvc_level)+"_mov")
+
+    muscle_ext = ["flexor", "extensor"]
+    muscle_int = ["fdi", "second_di"]
+    for electrode_placement in electrode_placements:
+        for data_type in data_types:
+            key_name = electrode_placement + "_" + data_type
+            n_mu_all[key_name] = {}
+            for gesture in gestures:
+                if (data_type == "10_train") or (data_type == "30_train"):
+                    if gesture != "rest_calibration":
+                        for i in range(1, n_training+1):
+                            training_gesture = gesture + str(i)
+                            n_mu_all[key_name][training_gesture] = {}
+                            if electrode_placement == "ext":
+                                n_mu_data = []
+                                for name in names:
+                                    n_mu_data.append(n_mu[name][key_name][training_gesture][muscle_ext[0]])  
+                                n_mu_all[key_name][training_gesture][muscle_ext[0]] = n_mu_data
+                                n_mu_data = []
+                                for name in names:
+                                    n_mu_data.append(n_mu[name][key_name][training_gesture][muscle_ext[1]])  
+                                n_mu_all[key_name][training_gesture][muscle_ext[1]] = n_mu_data
+                            elif electrode_placement == "int":
+                                n_mu_data = []
+                                for name in names:
+                                    n_mu_data.append(n_mu[name][key_name][training_gesture][muscle_int[0]])  
+                                n_mu_all[key_name][training_gesture][muscle_int[0]] = n_mu_data
+                                n_mu_data = []
+                                for name in names:
+                                    n_mu_data.append(n_mu[name][key_name][training_gesture][muscle_int[1]])  
+                                n_mu_all[key_name][training_gesture][muscle_int[1]] = n_mu_data
+                if (data_type == "10_mov") or (data_type == "30_mov"):
+                    if gesture != "rest_calibration":
+                        for i in range(1, n_objects+1):
+                            movement_gesture = gesture + str(i)
+                            n_mu_all[key_name][movement_gesture] = {}
+                            if electrode_placement == "ext":
+                                n_mu_data = []
+                                for name in names:
+                                    n_mu_data.append(n_mu[name][key_name][movement_gesture][muscle_ext[0]])
+                                n_mu_all[key_name][movement_gesture][muscle_ext[0]] = n_mu_data
+                                n_mu_data = []
+                                for name in names:
+                                    n_mu_data.append(n_mu[name][key_name][movement_gesture][muscle_ext[1]])
+                                n_mu_all[key_name][movement_gesture][muscle_ext[1]] = n_mu_data
+                            elif electrode_placement == "int":
+                                n_mu_data = []
+                                for name in names:
+                                    n_mu_data.append(n_mu[name][key_name][movement_gesture][muscle_int[0]])
+                                n_mu_all[key_name][movement_gesture][muscle_int[0]] = n_mu_data
+                                n_mu_data = []
+                                for name in names:
+                                    n_mu_data.append(n_mu[name][key_name][movement_gesture][muscle_int[1]])
+                                n_mu_all[key_name][movement_gesture][muscle_int[1]] = n_mu_data
+    return n_mu_all
+
+
+def import_firing_rate(firing_rate={}, name="P01", 
+                       n_training=1, n_objects=4,
+                       electrode_placements=["ext", "int"],
+                       mvc_levels=["10", "30"],
+                       gestures=["close", "pinch", "tripod"]):
+    data_types = []
+    for mvc_level in mvc_levels:
+        data_types.append(mvc_level+"_train")
+    for mvc_level in mvc_levels:
+        data_types.append(mvc_level+"_mov")
+    
+    muscle_ext = ["flexor", "extensor"]
+    muscle_int = ["fdi", "second_di"]
+    for electrode_placement in electrode_placements:
+        for data_type in data_types:
+            key_name = electrode_placement + "_" + data_type
+            firing_rate[key_name] = {}
+            for gesture in gestures:
+                if (data_type == "10_mov") or (data_type == "30_mov"):
+                    if gesture != "rest_calibration":
+                        for i in range(1, n_objects+1):
+                            movement_gesture = gesture + str(i)
+                            firing_rate[key_name][movement_gesture] = {}
+                            if electrode_placement == "ext":
+                                file_path = ("../../data/" + name + "/sim_rt/" + 
+                                            name + "_" + key_name + "_" + 
+                                            movement_gesture + "_" + muscle_ext[0])
+                                firing_rate[key_name][movement_gesture][muscle_ext[0]] = list(loadmat(file_path)["mean_firing_rate"].flatten())
+                                file_path = ("../../data/" + name + "/sim_rt/" + 
+                                            name + "_" + key_name + "_" + 
+                                            movement_gesture + "_" + muscle_ext[1])
+                                firing_rate[key_name][movement_gesture][muscle_ext[1]] = list(loadmat(file_path)["mean_firing_rate"].flatten())
+                            elif electrode_placement == "int":
+                                file_path = ("../../data/" + name + "/sim_rt/" + 
+                                            name + "_" + key_name + "_" + 
+                                            movement_gesture + "_" + muscle_int[0])
+                                firing_rate[key_name][movement_gesture][muscle_int[0]] = list(loadmat(file_path)["mean_firing_rate"].flatten())
+                                file_path = ("../../data/" + name + "/sim_rt/" + 
+                                            name + "_" + key_name + "_" + 
+                                            movement_gesture + "_" + muscle_int[1])
+                                firing_rate[key_name][movement_gesture][muscle_int[1]] = list(loadmat(file_path)["mean_firing_rate"].flatten())
+    return firing_rate
+
+
+def all_firing_rate(firing_rate, firing_rate_all={}, 
+                    names=["P01", "P07", "P08", "P09", "P10"],
+                    n_training=1, n_objects=4,
+                    electrode_placements=["ext", "int"],
+                    mvc_levels=["10", "30"],
+                    gestures=["close", "pinch", "tripod"]):
+    data_types = []
+    for mvc_level in mvc_levels:
+        data_types.append(str(mvc_level)+"_train")
+    for mvc_level in mvc_levels:
+        data_types.append(str(mvc_level)+"_mov")
+
+    muscle_ext = ["flexor", "extensor"]
+    muscle_int = ["fdi", "second_di"]
+    for electrode_placement in electrode_placements:
+        for data_type in data_types:
+            key_name = electrode_placement + "_" + data_type
+            firing_rate_all[key_name] = {}
+            for gesture in gestures:
+                if (data_type == "10_mov") or (data_type == "30_mov"):
+                    if gesture != "rest_calibration":
+                        for i in range(1, n_objects+1):
+                            movement_gesture = gesture + str(i)
+                            firing_rate_all[key_name][movement_gesture] = {}
+                            if electrode_placement == "ext":
+                                firing_rate_data = []
+                                for name in names:
+                                    firing_rate_data.extend(list(firing_rate[name][key_name][movement_gesture][muscle_ext[0]]))
+                                firing_rate_all[key_name][movement_gesture][muscle_ext[0]] = firing_rate_data
+                                firing_rate_data = []
+                                for name in names:
+                                    firing_rate_data.extend(list(firing_rate[name][key_name][movement_gesture][muscle_ext[1]]))
+                                firing_rate_all[key_name][movement_gesture][muscle_ext[1]] = firing_rate_data
+                            elif electrode_placement == "int":
+                                firing_rate_data = []
+                                for name in names:
+                                    firing_rate_data.extend(list(firing_rate[name][key_name][movement_gesture][muscle_int[0]]))
+                                firing_rate_all[key_name][movement_gesture][muscle_int[0]] = firing_rate_data
+                                firing_rate_data = []
+                                for name in names:
+                                    firing_rate_data.extend(list(firing_rate[name][key_name][movement_gesture][muscle_int[1]]))
+                                firing_rate_all[key_name][movement_gesture][muscle_int[1]] = firing_rate_data
+    return firing_rate_all
+
+
+def import_offline_decomp(offline_decomp={}, name="P01", 
+                          n_training=1, n_objects=4,
+                          electrode_placements=["ext", "int"],
+                          mvc_levels=["10", "30"],
+                          gestures=["close", "pinch", "tripod"],
+                          imported_parameters=["MUPulses", "B", "ext_factor", "discard_ch"
+                                               "l", "SIG", "unique_mu"]):
+    data_types = []
+    for mvc_level in mvc_levels:
+        data_types.append(mvc_level+"_train")
+    for mvc_level in mvc_levels:
+        data_types.append(mvc_level+"_mov")
+    
+    muscle_ext = ["flexor", "extensor"]
+    muscle_int = ["fdi", "second_di"]
+    for electrode_placement in electrode_placements:
+        for data_type in data_types:
+            key_name = electrode_placement + "_" + data_type
+            offline_decomp[key_name] = {}
+            for gesture in gestures:
+                if (data_type == "10_train") or (data_type == "30_train"):
+                    if gesture != "rest_calibration":
+                        for i in range(1, n_training+1):
+                            training_gesture = gesture + str(i)
+                            offline_decomp[key_name][training_gesture] = {}
+                            if electrode_placement == "ext":
+                                offline_decomp[key_name][training_gesture][muscle_ext[0]] = {}
+                                offline_decomp[key_name][training_gesture][muscle_ext[1]] = {}
+                                
+                                file_path = ("../../data/" + name + "/offline/" + 
+                                            name + "_" + key_name + "_" + 
+                                            training_gesture + "_" + muscle_ext[0])
+                                for imported_parameter in imported_parameters:
+                                    offline_decomp[key_name][training_gesture][muscle_ext[0]][imported_parameter] = loadmat(file_path)[imported_parameter]
+                                
+                                file_path = ("../../data/" + name + "/offline/" + 
+                                            name + "_" + key_name + "_" + 
+                                            training_gesture + "_" + muscle_ext[1])
+                                
+                                for imported_parameter in imported_parameters:
+                                    offline_decomp[key_name][training_gesture][muscle_ext[1]][imported_parameter] = loadmat(file_path)[imported_parameter]
+
+                            elif electrode_placement == "int":
+                                offline_decomp[key_name][training_gesture][muscle_int[0]] = {}
+                                offline_decomp[key_name][training_gesture][muscle_int[1]] = {}
+
+                                file_path = ("../../data/" + name + "/offline/" + 
+                                            name + "_" + key_name + "_" + 
+                                            training_gesture + "_" + muscle_int[0])
+                                for imported_parameter in imported_parameters:
+                                    offline_decomp[key_name][training_gesture][muscle_int[0]][imported_parameter] = loadmat(file_path)[imported_parameter]
+                                
+                                file_path = ("../../data/" + name + "/offline/" + 
+                                            name + "_" + key_name + "_" + 
+                                            training_gesture + "_" + muscle_int[1])
+                                for imported_parameter in imported_parameters:
+                                    offline_decomp[key_name][training_gesture][muscle_int[1]][imported_parameter] = loadmat(file_path)[imported_parameter]
+                                
+                if (data_type == "10_mov") or (data_type == "30_mov"):
+                    if gesture != "rest_calibration":
+                        for i in range(1, n_objects+1):
+                            movement_gesture = gesture + str(i)
+                            offline_decomp[key_name][movement_gesture] = {}
+                            if electrode_placement == "ext":
+                                offline_decomp[key_name][movement_gesture][muscle_ext[0]] = {}
+                                offline_decomp[key_name][movement_gesture][muscle_ext[1]] = {}
+                                
+                                file_path = ("../../data/" + name + "/offline/" + 
+                                            name + "_" + key_name + "_" + 
+                                            movement_gesture + "_" + muscle_ext[0])
+                                for imported_parameter in imported_parameters:
+                                    offline_decomp[key_name][movement_gesture][muscle_ext[0]][imported_parameter] = loadmat(file_path)[imported_parameter]
+                                
+                                file_path = ("../../data/" + name + "/offline/" + 
+                                            name + "_" + key_name + "_" + 
+                                            movement_gesture + "_" + muscle_ext[1])
+                                for imported_parameter in imported_parameters:
+                                    offline_decomp[key_name][movement_gesture][muscle_ext[1]][imported_parameter] = loadmat(file_path)[imported_parameter]
+
+                            elif electrode_placement == "int":
+                                offline_decomp[key_name][movement_gesture][muscle_int[0]] = {}
+                                offline_decomp[key_name][movement_gesture][muscle_int[1]] = {}
+
+                                file_path = ("../../data/" + name + "/offline/" + 
+                                            name + "_" + key_name + "_" + 
+                                            movement_gesture + "_" + muscle_int[0])
+                                for imported_parameter in imported_parameters:
+                                    offline_decomp[key_name][movement_gesture][muscle_int[0]][imported_parameter] = loadmat(file_path)[imported_parameter]
+                                
+                                file_path = ("../../data/" + name + "/offline/" + 
+                                            name + "_" + key_name + "_" + 
+                                            movement_gesture + "_" + muscle_int[1])
+                                for imported_parameter in imported_parameters:
+                                    offline_decomp[key_name][movement_gesture][muscle_int[1]][imported_parameter] = loadmat(file_path)[imported_parameter]
+                                
+    return offline_decomp
